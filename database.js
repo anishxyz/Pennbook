@@ -185,6 +185,7 @@ var add_post = function(creator, type, content, timestamp, callback) {
 }
 
 // Error 1 means issue while writing to database
+// Returns comment_id as data
 var add_comment = function(creator, post_id, timestamp, content, callback) {
   console.log("Creating new comment with content:");
   console.log("Creator: " + creator);
@@ -193,6 +194,7 @@ var add_comment = function(creator, post_id, timestamp, content, callback) {
 
   id = uuidv4();
 
+  // First write to comments
   var params = {
     Item: {
       comment_id: {
@@ -219,6 +221,7 @@ var add_comment = function(creator, post_id, timestamp, content, callback) {
       console.log(err);
       callback("1", null);
     } else {
+      // Next write to posts_to_comments
       params = {
         Item: {
           post_id: {
@@ -245,7 +248,8 @@ var add_comment = function(creator, post_id, timestamp, content, callback) {
 var database = { 
   createUser: create_user,
   loginCheck: login_check,
-  addPost: add_post
+  addPost: add_post,
+  addComment: add_comment
 };
   
 module.exports = database;

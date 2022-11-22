@@ -3,6 +3,7 @@ const { check_login } = require('../routes/routes');
 AWS.config.update({region:'us-east-1'});
 var db = new AWS.DynamoDB();
 var SHA256 = require("crypto-js/sha256");
+import { get } from 'http';
 import { v4 as uuidv4 } from 'uuid';
 
 // Helper function that checks if username is in use or not
@@ -87,6 +88,86 @@ var create_user = function(username, email, firstName, lastName, password, affil
       });
     }
   });
+}
+
+// Bidirectional
+// Error 1 means issue while adding to database
+var add_friendship = function(friend1, friend2, callback) {
+  console.log("Creating friendship");
+  console.log("Friend 1: " + friend1);
+  console.log("Friend 2: " + friend2);
+
+  var params = {
+    Item: {
+      friend1: {
+        S: friend1
+      },
+      friend2: {
+        S: friend2
+      },
+    },
+    TableName: "friendships"
+  };
+
+  db.putItem(params, function(err, data) {
+    if (err) {
+      console.log(err);
+      callback("1", null);
+    } else {
+      params = {
+        Item: {
+          friend1: {
+            S: friend2
+          },
+          friend2: {
+            S: friend1
+          },
+        },
+        TableName: "friendships"
+      };
+      db.putItem(params, function(err, data) {
+        if (err) {
+          console.log(err);
+          callback("1", null);
+        } else {
+          callback(null, "Success");
+        }
+      });
+    }
+  })
+}
+
+// Get friends of user
+// Error 1 means issue while querying
+var get_friends = function(username, callback) {
+  var params = {
+    KeyConditions: {
+      friend1: {
+        ComparisonOperator: 'EQ',
+        AttributeValueList: [ { S: username } ]
+      }
+    },
+    AttributesToGet: ["friend2"],
+    TableName: "friendships"
+  };
+
+  db.query(params, function(err, data) {
+    if (err) {
+      console.log(err);
+      callback("1", null);
+    } else {
+      if (data == null) {
+        callback(null, []);
+      } else {
+        callback(null, data.Items);
+      }
+    }
+  })
+}
+
+// Gets posts
+var get_posts_for_user = function(username, callback) {
+  
 }
 
 // Error 1 means username not found
@@ -249,7 +330,10 @@ var database = {
   createUser: create_user,
   loginCheck: login_check,
   addPost: add_post,
-  addComment: add_comment
+  addComment: add_comment,
+  addFriendship: add_friendship,
+  getFriends: get_friends,
+  getPostsForUser: get_posts_for_user
 };
   
 module.exports = database;

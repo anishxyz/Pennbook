@@ -1,0 +1,53 @@
+<html>
+<head>
+<title>Login</title>
+<link rel="stylesheet"
+href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style type="text/css">
+body {
+padding-top: 40px;
+padding-bottom: 40px;
+background-color: white;
+}
+.login-box {
+max-width: 330px;
+margin: 0 auto;
+}
+.login-box .form-control {
+margin-bottom: 10px;
+}
+</style>
+</head>
+<body>
+<div class="login-box">
+    <h4>Facebook</h4>
+    <br>
+<h4>Login Here</h4>
+<br>
+<%if (message != null) { %>
+        <font color="red"><%= message %></font><p>
+    <% } %>
+<br>
+<form method="post" action="/checklogin">
+<input type="text" name="usernameInput" size="20" class="form-control" placeholder="Username">
+<input type="text" name="passInput" size="20" class="form-control" placeholder="Password">
+<input type="submit" name="submit" value="Login" class="btn btn-lg btn-primary btn-block">
+</form>
+
+<a href="/signup">No account? Sign up here</a> 
+<br>
+<br>
+<br>
+<p> Made by G26 </p>
+</div>
+
+
+<br>
+<br>
+
+
+    
+  
+</body>
+</html>

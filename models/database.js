@@ -166,8 +166,38 @@ var get_friends = function(username, callback) {
 }
 
 // Gets posts
+// Error 1 means issue while querying for friends
+// Error 2 means issue while querying for posts
 var get_posts_for_user = function(username, callback) {
-  
+  get_friends(username, function(err, data) {
+    if (err) {
+      callback("1", null);
+    } else {
+      queries = [];
+      for (friend of data) {
+        queries.push({
+          username: {
+            S: friend.S
+          }
+        });
+      }
+      params = {
+        RequestItems: {
+          users_to_posts: {
+            Keys: queries,
+            ProjectionExpression: "post_id"
+          }
+        }
+      };
+      db.batchGetItem(params, function(err, data) {
+        if (err) {
+          callback("2", null);
+        } else {
+          callback(null, data.Items);
+        }
+      });
+    }
+  });
 }
 
 // Error 1 means username not found

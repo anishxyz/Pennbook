@@ -32,7 +32,7 @@ var user_exists = function(username, callback) {
 // Error 1 means some database error
 // Error 2 means username already in use
 // Returns username as data
-var create_user = function(username, email, firstName, lastName, password, affiliation, birthday, callback) {
+var create_user = function(username, email, firstName, lastName, password, affiliation, birthday, interests, callback) {
   // Log info
   console.log("Registering user with following attributes:");
   console.log("Username: " + username);
@@ -75,6 +75,9 @@ var create_user = function(username, email, firstName, lastName, password, affil
             },
             birthday: { 
               S: birthday
+            },
+            interests: {
+              SS: interests
             }
           },
           TableName: "users"

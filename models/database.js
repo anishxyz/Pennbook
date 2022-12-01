@@ -24,12 +24,12 @@ var user_exists = function(username, callback) {
       console.log(err);
       callback("1", null);
     } else {
-      callback(null, data.Items.length != 0)
+      callback(null, data.Items.length != 0);
     }
   });
 }
 
-// Error 1 means invalid username
+// Error 1 means some database error
 // Error 2 means username already in use
 // Returns username as data
 var create_user = function(username, email, firstName, lastName, password, affiliation, birthday, callback) {
@@ -86,6 +86,53 @@ var create_user = function(username, email, firstName, lastName, password, affil
           else
             callback(null, username);
       });
+    }
+  });
+}
+
+// Error 1 means user does not exist
+var get_user_info = function(username, callback) {
+  var params = {
+    KeyConditions: {
+      username: {
+        ComparisonOperator: 'EQ',
+        AttributeValueList: [ { S: username } ]
+      }
+    },
+    TableName: "users"
+  };
+
+  db.query(params, function(err, data) {
+    if (err) {
+      console.log(err);
+      callback("1", null);
+    } else {
+      callback(null, data.Items[0]);
+    }
+  });
+}
+
+// Updates provided attribute of user
+// Error 1 means issue while querying table
+var update_user_info = function(username, attribute, value, callback) {
+  update_expression = "SET " + attribute + " = :value";
+
+  var params = {
+    TableName: "users",
+    Key: {
+      username: username
+    },
+    UpdateExpression: update_expression,
+    ExpressionAttributeValues: {
+      ":label": value
+    }
+  };
+
+  db.updateItem(params, function(err, data) {
+    if (err) {
+      callback("1", null);
+    } else {
+      callback(null, value);
     }
   });
 }
@@ -159,7 +206,11 @@ var get_friends = function(username, callback) {
       if (data == null) {
         callback(null, []);
       } else {
-        callback(null, data.Items);
+        friends = [];
+        for (friend of data.Items) {
+          friends.push(friend.S);
+        }
+        callback(null, friends);
       }
     }
   })
@@ -177,7 +228,7 @@ var get_posts_for_user = function(username, callback) {
       for (friend of data) {
         queries.push({
           username: {
-            S: friend.S
+            S: friend
           }
         });
       }
@@ -196,6 +247,59 @@ var get_posts_for_user = function(username, callback) {
           callback(null, data.Items);
         }
       });
+    }
+  });
+}
+
+// Gets information for one post_id
+// Error 1 means issue while querying database
+// Error 2 means post_id not found
+var get_post = function(post_id, callback) {
+  var params = {
+    KeyConditions: {
+      post_id: {
+        ComparisonOperator: 'EQ',
+        AttributeValueList: [ { S: post_id } ]
+      }
+    },
+    TableName: "posts"
+  };
+  db.query(params, function(err, data) {
+    if (err) {
+      callback("1", null);
+    } else {
+      if (data.Items.length == 0) {
+        callback("2", null);
+      } else {
+        callback(null, data.Items[0]);
+      }
+    }
+  })
+}
+
+// Gets information for multiple post_ids
+// Error 1 means issue while querying database
+var get_posts = function(post_id_list, callback) {
+  queries = [];
+  for (post_id of post_id_list) {
+    queries.push({
+      post_id: {
+        S: post_id
+      }
+    });
+  }
+  params = {
+    RequestItems: {
+      posts: {
+        Keys: queries
+      }
+    }
+  };
+  db.batchGetItem(params, function(err, data) {
+    if (err) {
+      callback("1", null);
+    } else {
+      callback(null, data.Items);
     }
   });
 }
@@ -363,7 +467,11 @@ var database = {
   addComment: add_comment,
   addFriendship: add_friendship,
   getFriends: get_friends,
-  getPostsForUser: get_posts_for_user
+  getPostsForUser: get_posts_for_user,
+  getPost: get_post,
+  getPosts: get_posts,
+  getUserInfo: get_user_info,
+  updateUserInfo: update_user_info
 };
   
 module.exports = database;

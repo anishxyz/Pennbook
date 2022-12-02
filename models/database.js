@@ -68,7 +68,7 @@ var create_user = function(username, email, firstName, lastName, password, affil
               S: lastName
             },
             password: { 
-              S: password
+              B: password
             },
             affiliation: { 
               S: affiliation

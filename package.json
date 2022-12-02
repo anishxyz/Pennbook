@@ -8,6 +8,7 @@
    "dependencies": {
       "async": "*",
       "aws-sdk": "^2.1261.0",
+      "bootstrap": "^5.2.3",
       "ejs": "^3.1.8",
       "express": "*",
       "express-session": "^1.17.3",

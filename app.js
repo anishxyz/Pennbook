@@ -15,9 +15,9 @@
    app.use(express.json());
 
    const http = require('http');
-const server = http.createServer(app);
-const { Server } = require("socket.io");
-const io = new Server(server);
+   const server = http.createServer(app);
+   const { Server } = require("socket.io");
+   const io = new Server(server);
    
    
    /* Below we install the routes. The first argument is the URL that we
@@ -28,6 +28,10 @@ const io = new Server(server);
    
    app.get('/', routes.get_main);
    app.get('/chat', routes.get_chat);
+   app.get('/signup', routes.get_signup);
+   app.post('/checklogin', routes.post_checklogin);
+   app.post('/createaccount', routes.post_createaccount);
+   app.get('/home', routes.get_home);
 
    io.on('connection', (socket) => {
     socket.on('chat message', (msg) => {
@@ -46,7 +50,6 @@ const io = new Server(server);
 
    server.listen(8080, () => {
     console.log('listening on *:8080');
-  });
+   });
 
    console.log('Server running on port 8080. Now open http://localhost:8080/ in your browser!');
-   

@@ -45,12 +45,15 @@ var create_user = function(username, email, firstName, lastName, password, affil
 
   // Hash password
   password = SHA256(password);
+  console.log("pass", password);
+
+
 
   user_exists(username, function(err, data) {
     if (err) {
-      callback("1", null);
+      callback(err, null);
     } else if (data) {
-      callback("2", null);
+      callback(err, null);
     } else {
         // If username not in use, make new user
         var params = {
@@ -85,7 +88,7 @@ var create_user = function(username, email, firstName, lastName, password, affil
 
       db.putItem(params, function(err, data){
           if (err)
-            callback("1", null);
+            callback(err, null);
           else
             callback(null, username);
       });

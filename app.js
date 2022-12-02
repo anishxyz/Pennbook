@@ -31,6 +31,7 @@
    app.get('/signup', routes.get_signup);
    app.post('/checklogin', routes.post_checklogin);
    app.post('/createaccount', routes.post_createaccount);
+   app.get('/home', routes.get_home);
 
    io.on('connection', (socket) => {
     socket.on('chat message', (msg) => {
@@ -52,4 +53,3 @@
    });
 
    console.log('Server running on port 8080. Now open http://localhost:8080/ in your browser!');
-   

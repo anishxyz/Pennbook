@@ -70,6 +70,9 @@ var createAcc= function(req, res) {
    var affiliation = req.body.affiliationInput;
    var birthday = req.body.birthdayInput;
 
+var getHome = function(req, res) {
+    res.render('home.ejs');
+};
 
    if (!(firstName=="" || lastName=="" || email==""
    || uname=="" || pass=="" || affiliation=="" || birthday == "")) {
@@ -100,6 +103,7 @@ var createAcc= function(req, res) {
     post_checklogin: logincheck,
     get_signup: getsignup,
     post_createaccount: createAcc,
+     get_home: getHome
   };
   
   module.exports = routes;

@@ -1,0 +1,72 @@
+<html>
+<head>
+<title>Sign Up</title>
+<link rel="stylesheet"
+href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style type="text/css">
+body {
+padding-top: 40px;
+padding-bottom: 40px;
+background-color: white;
+}
+.signup-box {
+max-width: 600px;
+margin: 0 auto;
+}
+.login-box .form-control {
+margin-bottom: 10px;
+}
+</style>
+</head>
+<body>
+<div class="signup-box">
+    <h4>Facebook Sign Up</h4>
+    <br>
+
+<h4>Sign Up Here</h4>
+<form method="post" action="/createaccount">
+    <h2> Your First Name: </h2>
+    <input type="text" name="firstNameInput" size="20" class="form-control" placeholder="Your First Name">
+    <h2> Your Last Name: </h2>
+    <input type="text" name="lastNameInput" size="20" class="form-control" placeholder="Your Last Name">
+    <h2> Email: </h2>
+    <input type="text" name="emailInput" size="20" class="form-control" placeholder="example@example.com">
+    <h2> Username: </h2>
+    <input type="text" name="usernameInput" size="20" class="form-control" placeholder="Username">
+    <h2> Password: </h2>
+    <input type="text" name="passInput" size="20" class="form-control" placeholder="Password">
+
+    <h2> Affiliation: </h2>
+    <input type="text" name="affiliationInput" size="20" class="form-control" placeholder="UPenn, etc.">
+    
+    <h2> Birthday: </h2>
+    <input type="text" name="birthdayInput" size="20" class="form-control" placeholder="XX/XX/XXXX">
+
+    <h2> Sign Up: </h2>
+    <input type="submit" name="submit" value="Sign Up" class="btn btn-lg btn-primary btn-block">
+  </form>
+</form>
+
+<br>
+<%if (message != null) { %>
+        <font color="red"><%= message %></font><p>
+    <% } %>
+<br>
+
+<a href="/signup">No account? Sign up here</a> 
+<br>
+<br>
+<br>
+<p> Made by G26 </p>
+</div>
+
+
+<br>
+<br>
+
+
+    
+  
+</body>
+</html>

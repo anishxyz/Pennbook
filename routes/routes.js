@@ -102,8 +102,7 @@ var getHome = function(req, res) {
     get_chat: getChat,
     post_checklogin: logincheck,
     get_signup: getsignup,
-    post_createaccount: createAcc,
-     get_home: getHome
+    post_createaccount: createAcc
   };
   
   module.exports = routes;

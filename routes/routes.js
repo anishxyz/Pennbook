@@ -68,13 +68,21 @@ var db = require('../models/database.js');
     } else if (req.session.blankSign) {
     req.session.blankSign=false;
      res.render('signup.ejs', {message: 'Please complete all fields.'});
-    
     }
    
  };
 
  var getHome = function(req, res) {
-  res.render('home.ejs');
+     if(req.session.username == null) {
+         res.render('signup.ejs', {message: null});
+         return;
+     }
+     db.getPostsForUser(req.session.username, function(err, data) {
+         if (err) {
+             res.render('signup.ejs', {message: null});
+         }
+         res.render('home.ejs', {posts: data, user: null});
+     });
 };
 
 // get inputs

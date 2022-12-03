@@ -46,10 +46,7 @@ var create_user = function(username, email, firstName, lastName, password, affil
   // Hash password
 
   // FIX LATER
-  //password = SHA256(password);
-  console.log("pass", password);
-
-
+  password = JSON.stringify(SHA256(password).words);
 
   user_exists(username, function(err, data) {
     if (err) {
@@ -89,10 +86,12 @@ var create_user = function(username, email, firstName, lastName, password, affil
       };
 
       db.putItem(params, function(err, data){
-          if (err)
+          if (err) {
+            console.log(err);
             callback(err, null);
-          else
+          } else {
             callback(null, username);
+          }
       });
     }
   });
@@ -321,7 +320,7 @@ var login_check = function(username, password, callback) {
     console.log("Password: " + password.charAt(0) + "*".repeat(password.length - 1));
 
     // Hash password provided
-    password = SHA256(password);
+    password = JSON.stringify(SHA256(password).words);
 
     var params = {
         KeyConditions: {

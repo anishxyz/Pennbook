@@ -75,6 +75,19 @@
             </ul>
         </div>
         <div class="col-md-9">
+            <%if (posts != null) { %>
+                <% posts.forEach(p => { %>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title"><%- p.creator.S -%></h5>
+                            <p class="card-text"><%- p.content.S -%></p>
+                        </div>
+                        <div class="card-footer">
+                            <small class="text-muted"><%- p.timestamp.S -%></small>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } %>
             <div class="card mb-3">
                 <div class="card-body">
                     <h5 class="card-title">Friend 1</h5>

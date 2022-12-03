@@ -56,6 +56,7 @@ var db = require('../models/database.js');
 
 
  var getsignup = function(req, res) {
+   
 	
 	
    // if all good, just go to the page otherwise show approriate error
@@ -72,6 +73,134 @@ var db = require('../models/database.js');
     }
    
  };
+
+ var getEditAccPage = function(req, res) {
+  // if (!req.session.unameExist && !req.session.blankSign) {
+  //  res.render('signup.ejs', {message: null});
+  // } else if (req.session.unameExist) {
+  //  req.session.unameExist=false;
+  //   res.render('signup.ejs', {message: 'Username already exists.'});
+  //  } else if (req.session.blankSign) {
+  //  req.session.blankSign=false;
+  //   res.render('signup.ejs', {message: 'Please complete all fields.'});
+   
+  //  }
+
+  if (req.session.username == null) {
+    res.render('signup.ejs', {message: null});
+  }
+
+  db.getUserInfo(req.session.username, function(err, data) {  
+   
+    var message = null;
+    if (req.session.blankAccField == true) {
+      req.session.blankAccFalse == true
+      message = "Please complete all fields."
+    } else if (req.session.accChangeDidNotWork == true) {
+      req.session.accChangeDidNotWork == true
+      message = "Change did not work, please try again."
+    } 
+
+    res.render('editaccount.ejs', 
+    {message: message, 
+    user:req.session.username,
+    firstName: data.firstName.S,
+    lastName: data.lastName.S,
+    email: data.email.S,
+    affiliation: data.affiliation.S,
+    birthday: data.birthday.S,
+    });
+
+  });
+
+
+ 
+  
+};
+
+
+
+// get inputs
+var saveAccChanges= function(req, res) {
+  var username = req.session.username;
+  var firstName = req.body.firstNameInput;
+  var lastName = req.body.lastNameInput;
+  var password = req.body.passInput;
+  var email = req.body.emailInput;
+  var affiliation = req.body.affiliationInput;
+  var birthday = req.body.birthdayInput;
+  // TODO: IMPLEMENT INTERESTS
+  var TEST_INTERESTS = ["TESTING ONLY MUST CHANGE"]
+
+  if (!(firstName=="" || lastName=="" || email==""
+  || username=="" || affiliation=="" || birthday == "")) {
+
+    
+
+   // if all good, add 
+   db.updateUserInfo(username, "firstName", firstName, function(err, data) {   
+      if ((err == null)) {
+        db.updateUserInfo(username, "lastName", lastName, function(err, data) {   
+          if ((err == null)) {
+            db.updateUserInfo(username, "email", email, function(err, data) {   
+              if ((err == null)) {
+                db.updateUserInfo(username, "affiliation", affiliation, function(err, data) {   
+                  if ((err == null)) {
+                    db.updateUserInfo(username, "birthday", birthday, function(err, data) {   
+                      if ((err == null)) {
+                        if (password == "") {
+                          // only update pass if new pass entered
+                          res.redirect('/home');
+                        } else {
+                          console.log("Updating password to: ", password, "with username: ", username);
+                          db.updateUserInfo(username, "password", password, function(err, data) {   
+                            if ((err == null)) {
+                              res.redirect('/home');
+                            } else {
+                                console.log("ERROR", err)
+                                req.session.accChangeDidNotWork = true;
+                                res.redirect('/editaccount');
+                            }
+                          });
+                        }
+                      } else {
+                          console.log("ERROR", err)
+                          req.session.accChangeDidNotWork = true;
+                          res.redirect('/editaccount');
+                      }
+                    });
+                  } else {
+                      console.log("ERROR", err)
+                      req.session.accChangeDidNotWork = true;
+                      res.redirect('/editaccount');
+                  }
+                });
+              } else {
+                  console.log("ERROR", err)
+                  req.session.accChangeDidNotWork = true;
+                  res.redirect('/editaccount');
+              }
+            });
+          } else {
+              console.log("ERROR", err)
+              req.session.accChangeDidNotWork = true;
+              res.redirect('/editaccount');
+          }
+        });
+      } else {
+          console.log("ERROR", err)
+          req.session.accChangeDidNotWork = true;
+          res.redirect('/editaccount');
+      }
+    });
+  } else {
+   // things are empty, show appropriate error
+    req.session.blankAccField=true;
+    res.redirect('/editaccount');
+  }
+  }
+
+
 
  var getHome = function(req, res) {
   res.render('home.ejs');
@@ -147,6 +276,8 @@ var createAcc= function(req, res) {
     get_home: getHome,
     get_createpost: getCreatePost,
     post_addpost: addPostAction,
+    get_editaccount: getEditAccPage,
+    post_saveaccountchanges: saveAccChanges,
   };
   
   module.exports = routes;

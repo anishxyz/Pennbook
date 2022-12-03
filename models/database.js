@@ -355,7 +355,8 @@ var add_post = function(creator, type, content, timestamp, callback) {
   console.log("Content: " + content);
   console.log("Timestamp: " + timestamp);
 
-  //timestamp = parseInt(timestamp);
+  // Convert timestamp to a string
+  timestamp = timestamp.toString();
 
   id = uuidv4();
 
@@ -379,8 +380,6 @@ var add_post = function(creator, type, content, timestamp, callback) {
     },
     TableName: "posts"
   };
-
-  console.log(params.Item.timestamp, " TIMESTAMP")
 
   // Write to posts table
   db.putItem(params, function(err, data) {
@@ -423,8 +422,7 @@ var add_comment = function(creator, post_id, timestamp, content, callback) {
   id = uuidv4();
   
   // Convert timestamp to a string
-  timestamp = "\'" + timestamp.toString() + "\'";
-  console.log(timestamp);
+  timestamp = timestamp.toString();
 
   // First write to comments
   var params = {

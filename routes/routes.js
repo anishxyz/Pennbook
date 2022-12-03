@@ -112,11 +112,13 @@ var createAcc= function(req, res) {
    var pass = req.body.passInput;
    var affiliation = req.body.affiliationInput;
    var birthday = req.body.birthdayInput;
+   // TODO: IMPLEMENT INTERESTS
+   var TEST_INTERESTS = ["TESTING ONLY MUST CHANGE"]
 
    if (!(firstName=="" || lastName=="" || email==""
    || uname=="" || pass=="" || affiliation=="" || birthday == "")) {
     // if all good, add 
-    db.createUser(uname, email, firstName, lastName, pass, affiliation, birthday, function(err, data) {   
+    db.createUser(uname, email, firstName, lastName, pass, affiliation, birthday, TEST_INTERESTS, function(err, data) {   
        if ((err != null)) {
        console.log("HAS AN ERROR");
        console.log(err);

@@ -4,7 +4,7 @@ AWS.config.update({region:'us-east-1'});
 var db = new AWS.DynamoDB();
 var SHA256 = require("crypto-js/sha256");
 const { get } = require('http');
-const { uuidv4  } = require('uuid');
+const { v4: uuidv4  } = require('uuid');
 
 // Helper function that checks if username is in use or not
 // Error 1 means invalid username
@@ -44,7 +44,9 @@ var create_user = function(username, email, firstName, lastName, password, affil
   console.log("Birthday: " + birthday);
 
   // Hash password
-  password = SHA256(password);
+
+  // FIX LATER
+  //password = SHA256(password);
   console.log("pass", password);
 
 
@@ -71,7 +73,7 @@ var create_user = function(username, email, firstName, lastName, password, affil
               S: lastName
             },
             password: { 
-              B: password
+              S: password
             },
             affiliation: { 
               S: affiliation
@@ -348,6 +350,9 @@ var add_post = function(creator, type, content, timestamp, callback) {
   console.log("Creator: " + creator);
   console.log("Type: " + type);
   console.log("Content: " + content);
+  console.log("Timestamp: " + timestamp);
+
+  //timestamp = parseInt(timestamp);
 
   id = uuidv4();
 
@@ -371,6 +376,8 @@ var add_post = function(creator, type, content, timestamp, callback) {
     },
     TableName: "posts"
   };
+
+  console.log(params.Item.timestamp, " TIMESTAMP")
 
   // Write to posts table
   db.putItem(params, function(err, data) {

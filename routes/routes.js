@@ -1,3 +1,4 @@
+const { addPost } = require('../models/database.js');
 var db = require('../models/database.js');
 
 // routes here
@@ -16,6 +17,18 @@ var db = require('../models/database.js');
  var getChat = function(req, res) {
     res.render('chat.ejs', {message: null});
  };
+
+ var getCreatePost = function(req, res) {
+   if (req.session.postInfoBlank == true) {
+    res.render('createpost.ejs', {message: 'Please complete all fields.'});
+   } else if (req.session.postFailed == true) {
+    res.render('createpost.ejs', {message: 'Post failed. Please try again.'});
+   } else if (req.session.postSucceeded == true) {
+    res.render('createpost.ejs', {message: 'Post succeeded! Post again or go back home.'});
+   } else {
+    res.render('createpost.ejs', {message: null});
+   }
+};
 
  var logincheck = function(req, res) {
    var uname = req.body.usernameInput;
@@ -60,6 +73,36 @@ var db = require('../models/database.js');
    
  };
 
+ var getHome = function(req, res) {
+  res.render('home.ejs');
+};
+
+// get inputs
+var addPostAction= function(req, res) {
+  var text = req.body.textInput;
+
+  if (text == "") {
+     req.session.postInfoBlank=true;
+     res.redirect('/createpostpage');
+  } else {
+    //add the post
+
+    db.addPost(req.session.username, "post", text, Date.now(), function(err, data) {   
+      if ((err != null)) {
+      console.log("HAS AN ERROR");
+      console.log(err);
+      req.session.postFailed=true;
+        res.redirect('/createpostpage');
+      } else {
+        req.session.postSucceeded=true;
+        res.redirect('/createpostpage');
+      }
+    });
+  }
+
+}
+
+
  // get inputs
 var createAcc= function(req, res) {
    var firstName = req.body.firstNameInput;
@@ -69,10 +112,6 @@ var createAcc= function(req, res) {
    var pass = req.body.passInput;
    var affiliation = req.body.affiliationInput;
    var birthday = req.body.birthdayInput;
-
-var getHome = function(req, res) {
-    res.render('home.ejs');
-};
 
    if (!(firstName=="" || lastName=="" || email==""
    || uname=="" || pass=="" || affiliation=="" || birthday == "")) {
@@ -103,7 +142,9 @@ var getHome = function(req, res) {
     post_checklogin: logincheck,
     get_signup: getsignup,
     post_createaccount: createAcc,
-     get_home: getHome
+    get_home: getHome,
+    get_createpost: getCreatePost,
+    post_addpost: addPostAction,
   };
   
   module.exports = routes;

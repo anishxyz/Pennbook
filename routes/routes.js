@@ -60,8 +60,9 @@ var db = require('../models/database.js');
 	
 	
    // if all good, just go to the page otherwise show approriate error
-   
-   if (!req.session.unameExist && !req.session.blankSign) {
+   if (req.session.lessInterests) {
+    res.render('signup.ejs', {message: "Please enter at least two interests."});
+   } else if (!req.session.unameExist && !req.session.blankSign) {
     res.render('signup.ejs', {message: null});
    } else if (req.session.unameExist) {
     req.session.unameExist=false;
@@ -69,7 +70,6 @@ var db = require('../models/database.js');
     } else if (req.session.blankSign) {
     req.session.blankSign=false;
      res.render('signup.ejs', {message: 'Please complete all fields.'});
-    
     }
    
  };
@@ -203,7 +203,16 @@ var saveAccChanges= function(req, res) {
 
 
  var getHome = function(req, res) {
-  res.render('home.ejs');
+     if(req.session.username == null) {
+         res.render('signup.ejs', {message: null});
+         return;
+     }
+     db.getPostsForUser(req.session.username, function(err, data) {
+         if (err) {
+             res.render('signup.ejs', {message: null});
+         }
+         res.render('home.ejs', {posts: data, user: null});
+     });
 };
 
 // get inputs
@@ -241,13 +250,25 @@ var createAcc= function(req, res) {
    var pass = req.body.passInput;
    var affiliation = req.body.affiliationInput;
    var birthday = req.body.birthdayInput;
-   // TODO: IMPLEMENT INTERESTS
-   var TEST_INTERESTS = ["TESTING ONLY MUST CHANGE"]
+   
+   var interests = []
+   for (const key in req.body) {
+    if (key.charAt(0) == '_') {
+      interests.push(key.substring(1));
+    }
+   }
+   if (interests.length < 2) {
+    req.session.lessInterests = true;
+    res.redirect('/signup');
+    return;
+   } else {
+    req.session.lessInterests = false;
+   }
 
    if (!(firstName=="" || lastName=="" || email==""
    || uname=="" || pass=="" || affiliation=="" || birthday == "")) {
     // if all good, add 
-    db.createUser(uname, email, firstName, lastName, pass, affiliation, birthday, TEST_INTERESTS, function(err, data) {   
+    db.createUser(uname, email, firstName, lastName, pass, affiliation, birthday, interests, function(err, data) {   
        if ((err != null)) {
        console.log("HAS AN ERROR");
        console.log(err);
@@ -265,7 +286,7 @@ var createAcc= function(req, res) {
      req.session.blankSign=true;
      res.redirect('/signup');
    }
-   }
+  }
 
  var routes = { 
     get_main: getMain,

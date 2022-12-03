@@ -33,6 +33,9 @@
    app.post('/createaccount', routes.post_createaccount);
    app.get('/home', routes.get_home);
 
+   app.get('/createpostpage', routes.get_createpost);
+   app.post('/addpost', routes.post_addpost);
+
    io.on('connection', (socket) => {
     socket.on('chat message', (msg) => {
         io.emit('chat message', msg);

@@ -113,12 +113,7 @@ var db = require('../models/database.js');
     });
 
   });
-
-
- 
-  
 };
-
 
 
 // get inputs

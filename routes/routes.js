@@ -61,6 +61,7 @@ var db = require('../models/database.js');
 	
    // if all good, just go to the page otherwise show approriate error
    if (req.session.lessInterests) {
+    res.session.lessInterests = false;
     res.render('signup.ejs', {message: "Please enter at least two interests."});
    } else if (!req.session.unameExist && !req.session.blankSign) {
     res.render('signup.ejs', {message: null});
@@ -212,8 +213,17 @@ var saveAccChanges= function(req, res) {
      db.getPostsForUser(req.session.username, function(err, data) {
          if (err) {
              res.render('signup.ejs', {message: null});
+         } else {
+          db.getPosts(data, function(err, data) {
+            if (err) {
+              console.log(err);
+              res.render('signup.ejs', {message: null});
+            } else {
+              console.log(data);
+              res.render('home.ejs', {posts: data, user: null});
+            }
+          });
          }
-         res.render('home.ejs', {posts: data, user: null});
      });
 };
 
@@ -263,8 +273,6 @@ var createAcc= function(req, res) {
     req.session.lessInterests = true;
     res.redirect('/signup');
     return;
-   } else {
-    req.session.lessInterests = false;
    }
 
    if (!(firstName=="" || lastName=="" || email==""

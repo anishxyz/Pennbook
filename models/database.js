@@ -223,13 +223,13 @@ var get_friends = function(username, callback) {
         callback(null, friends);
       }
     }
-  })
+  });
 }
 
 // Gets posts
 // Error 1 means issue while querying for friends
 // Error 2 means issue while querying for posts
-var get_posts_for_user = function(username, callback) {
+var get_posts_for_user_friends = function(username, callback) {
   get_friends(username, function(err, data) {
     if (err) {
       callback("1", null);
@@ -242,6 +242,11 @@ var get_posts_for_user = function(username, callback) {
           }
         });
       }
+      queries.push({
+        username: {
+          S: username
+        }
+      });
       params = {
         RequestItems: {
           users_to_posts: {
@@ -252,11 +257,46 @@ var get_posts_for_user = function(username, callback) {
       };
       db.batchGetItem(params, function(err, data) {
         if (err) {
+          console.log(err);
           callback("2", null);
         } else {
           callback(null, data.Items);
         }
       });
+    }
+  });
+}
+
+// Error 1 means issue while querying
+var get_posts_for_user = function(username, callback) {
+  var params = {
+    KeyConditions: {
+      username: {
+        ComparisonOperator: 'EQ',
+        AttributeValueList: [ { S: username } ]
+      }
+    },
+    AttributesToGet: ["post_id"],
+    TableName: "users_to_posts"
+  };
+
+  db.query(params, function(err, data) {
+    if (err) {
+      console.log(err);
+      callback("1", null);
+    } else {
+      console.log("data");
+      console.log(data.Items);
+      if (data == null) {
+        callback(null, []);
+      } else {
+        posts = [];
+        for (post of data.Items) {
+          posts.push(post.post_id.S);
+        }
+        console.log(posts);
+        callback(null, posts);
+      }
     }
   });
 }
@@ -305,11 +345,13 @@ var get_posts = function(post_id_list, callback) {
       }
     }
   };
+  console.log(params);
   db.batchGetItem(params, function(err, data) {
     if (err) {
+      console.log(err);
       callback("1", null);
     } else {
-      callback(null, data.Items);
+      callback(null, data.Responses.posts);
     }
   });
 }
@@ -485,6 +527,7 @@ var database = {
   addFriendship: add_friendship,
   getFriends: get_friends,
   getPostsForUser: get_posts_for_user,
+  getPostsForUserFriends: get_posts_for_user_friends,
   getPost: get_post,
   getPosts: get_posts,
   getUserInfo: get_user_info,

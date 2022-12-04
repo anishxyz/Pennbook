@@ -152,13 +152,13 @@ var saveAccChanges= function(req, res) {
           if ((err == null)) {
             db.updateUserInfo(username, "email", email, function(err, data) {   
               if ((err == null)) {
-                db.updateUserInfo(username, "affiliation", affiliation, function(err, data) {   
+                db.updateUserInfo(username, "affiliation", affiliation, async function(err, data) {   
                   if ((err == null)) {
 
                     // create new post with affiliation update if different from before
                     if(prevAffiliation!=affiliation) {
                       const affiliationChangeText = req.session.username + " changed their affiliation to \"" + affiliation + "\"";
-                      db.addPost(req.session.username, "status_update", affiliationChangeText, Date.now(), function(err, data) {   
+                       await db.addPost(req.session.username, "status_update", affiliationChangeText, Date.now(), function(err, data) {   
                         if ((err != null)) {
                           console.log("COULD NOT POST STATUS UPDATE")
                         } else {

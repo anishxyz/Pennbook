@@ -12,6 +12,9 @@ window.onload = function() {
     var email = '<%= email %>';
     var affiliation = '<%= affiliation %>';
     var birthday = '<%= birthday %>';
+    var interests = '<%= interests %>';
+    interests = interests.split(",");
+    console.log(interests);
 
     console.log("FIRST NAME", firstName);
 
@@ -21,6 +24,10 @@ window.onload = function() {
     document.getElementById('affiliationInput').value = affiliation;
     document.getElementById('birthdayInput').value = birthday;
 
+    for (interest of interests) {
+        console.log(interest);
+        document.getElementById(interest).checked = true;
+    }
 }
 
     
@@ -65,7 +72,139 @@ margin-bottom: 10px;
     <h2> Birthday: </h2>
     <input type="text" name="birthdayInput" id="birthdayInput" size="20" class="form-control" placeholder="XX/XX/XXXX">
 
-    <h2> Save Changes: </h2>
+    <h2>Interests (select at least two)</h2>
+    <table class="table table-borderless">
+        <tbody>
+            <tr>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="Politics" name="_Politics">
+                        <label class="form-check-label" for="flexCheckDefault">
+                            Politics
+                        </label>
+                      </div>
+                </td>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="Wellness" name="_Wellness">
+                        <label class="form-check-label" for="flexCheckChecked">
+                            Wellness
+                        </label>
+                      </div>
+                </td>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="Entertainment" name="_Entertainment">
+                        <label class="form-check-label" for="flexCheckChecked">
+                            Entertainment
+                        </label>
+                      </div>
+                </td>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="Travel" name="_Travel">
+                        <label class="form-check-label" for="flexCheckChecked">
+                            Travel
+                        </label>
+                      </div>
+                </td>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="Style and Beauty" name="_Style and Beauty">
+                        <label class="form-check-label" for="flexCheckChecked">
+                            Style and Beauty
+                        </label>
+                      </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="Parenting" name="_Parenting">
+                        <label class="form-check-label" for="flexCheckDefault">
+                            Parenting
+                        </label>
+                      </div>
+                </td>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="Healthy Living" name="_Healthy Living">
+                        <label class="form-check-label" for="flexCheckChecked">
+                            Healthy Living
+                        </label>
+                      </div>
+                </td>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="Queer Voices" name="_Queer Voices">
+                        <label class="form-check-label" for="flexCheckChecked">
+                            Queer Voices
+                        </label>
+                      </div>
+                </td>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="Food and Drink" name="_Food and Drink">
+                        <label class="form-check-label" for="flexCheckChecked">
+                            Food and Drink
+                        </label>
+                      </div>
+                </td>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="Business" name="_Business">
+                        <label class="form-check-label" for="flexCheckChecked">
+                            Business
+                        </label>
+                      </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="Comedy" name="_Comedy">
+                        <label class="form-check-label" for="flexCheckDefault">
+                            Comedy
+                        </label>
+                      </div>
+                </td>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="Sports" name="_Sports">
+                        <label class="form-check-label" for="flexCheckChecked">
+                            Sports
+                        </label>
+                      </div>
+                </td>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="Black Voices" name="_Black Voices">
+                        <label class="form-check-label" for="flexCheckChecked">
+                            Black Voices
+                        </label>
+                      </div>
+                </td>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="Home and Living" name="_Home and Living">
+                        <label class="form-check-label" for="flexCheckChecked">
+                            Home and Living
+                        </label>
+                      </div>
+                </td>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="Parents" name="_Parents">
+                        <label class="form-check-label" for="flexCheckChecked">
+                            Parents
+                        </label>
+                      </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+
     <input type="submit" name="submit" value="Save Changes" class="btn btn-lg btn-primary btn-block">
   </form>
 </form>

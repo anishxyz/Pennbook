@@ -200,7 +200,6 @@ var saveAccChanges= function(req, res) {
     res.redirect('/editaccount');
   }
   }
-  //hi
 
 
 

@@ -118,6 +118,18 @@ var db = require('../models/database.js');
 
 // get inputs
 var saveAccChanges= function(req, res) {
+
+  var prevAffiliation = "";
+  
+  db.getUserInfo(req.session.username, function(err, data) {  
+    if (!err) {
+      prevAffiliation = data.affiliation.S;
+    } else {
+      console.log("Could not get current affiliation.")
+    }
+  });
+
+
   var username = req.session.username;
   var firstName = req.body.firstNameInput;
   var lastName = req.body.lastNameInput;
@@ -142,6 +154,19 @@ var saveAccChanges= function(req, res) {
               if ((err == null)) {
                 db.updateUserInfo(username, "affiliation", affiliation, function(err, data) {   
                   if ((err == null)) {
+
+                    // create new post with affiliation update if different from before
+                    if(prevAffiliation!=affiliation) {
+                      const affiliationChangeText = req.session.username + " changed their affiliation to \"" + affiliation + "\"";
+                      db.addPost(req.session.username, "status_update", affiliationChangeText, Date.now(), function(err, data) {   
+                        if ((err != null)) {
+                          console.log("COULD NOT POST STATUS UPDATE")
+                        } else {
+                        }
+                      });
+                    }
+
+
                     db.updateUserInfo(username, "birthday", birthday, function(err, data) {   
                       if ((err == null)) {
                         if (password == "") {

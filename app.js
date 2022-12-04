@@ -36,8 +36,8 @@
    app.get('/createpostpage', routes.get_createpost);
    app.post('/addpost', routes.post_addpost);
 
-   // app.get('/editaccount', routes.get_editaccount);
-   // app.post('/saveaccountchanges', routes.post_saveaccountchanges);
+   app.get('/editaccount', routes.get_editaccount);
+   app.post('/saveaccountchanges', routes.post_saveaccountchanges);
 
    app.get('/logout', (req, res) => {
     req.session.destroy();

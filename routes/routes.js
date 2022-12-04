@@ -204,13 +204,12 @@ var saveAccChanges= function(req, res) {
 
 
  var getHome = function(req, res) {
-  res.render('home.ejs', {message: null});
 
      if(req.session.username == null) {
          res.render('signup.ejs', {message: null});
          return;
      }
-     db.getPostsForUser(req.session.username, function(err, data) {
+     db.getPostsForUserFriends(req.session.username, function(err, data) {
          if (err) {
              res.render('signup.ejs', {message: null});
          } else {

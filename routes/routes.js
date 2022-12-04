@@ -203,6 +203,8 @@ var saveAccChanges= function(req, res) {
 
 
  var getHome = function(req, res) {
+  res.render('home.ejs', {message: null});
+
      if(req.session.username == null) {
          res.render('signup.ejs', {message: null});
          return;

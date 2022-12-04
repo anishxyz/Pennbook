@@ -4,9 +4,9 @@ var db = require('../models/database.js');
 // routes here
  var getMain = function(req, res) {
    if (req.session.loginBlank != true && req.session.loginIncorrect != true) {
-	   res.render('loginpage.ejs', {message: null});
+       res.render('loginpage.ejs', {message: null});
   } else if (req.session.loginBlank == true) {
-    req.session.loginBlank=false;
+       req.session.loginBlank=false;
     res.render('loginpage.ejs', {message: 'Please complete all fields.'});
   } else if (req.session.loginIncorrect == true) {
     req.session.loginIncorrect=false;
@@ -204,8 +204,6 @@ var saveAccChanges= function(req, res) {
 
 
  var getHome = function(req, res) {
-  res.render('home.ejs', {message: null});
-
      if(req.session.username == null) {
          res.render('signup.ejs', {message: null});
          return;
@@ -219,8 +217,15 @@ var saveAccChanges= function(req, res) {
               console.log(err);
               res.render('signup.ejs', {message: null});
             } else {
-              console.log(data);
-              res.render('home.ejs', {posts: data, user: null});
+                console.log(data);
+                db.getFriends(req.session.username, function(err, dataf) {
+                    if (err) {
+                        console.log(err);
+                        res.render('signup.ejs', {message: null});
+                    } else {
+                        res.render('home.ejs', {posts: data, friends: dataf, currUser: req.session.username});
+                    }
+                });
             }
           });
          }

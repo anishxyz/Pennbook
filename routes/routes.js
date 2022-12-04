@@ -230,13 +230,12 @@ var saveAccChanges= function(req, res) {
 // get inputs
 var addPostAction= function(req, res) {
   var text = req.body.textInput;
-
+  
   if (text == "") {
      req.session.postInfoBlank=true;
      res.redirect('/createpostpage');
   } else {
     //add the post
-
     db.addPost(req.session.username, "post", text, Date.now(), function(err, data) {   
       if ((err != null)) {
       console.log("HAS AN ERROR");

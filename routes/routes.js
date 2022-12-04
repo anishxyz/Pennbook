@@ -56,9 +56,6 @@ var db = require('../models/database.js');
 
 
  var getsignup = function(req, res) {
-   
-	
-	
    // if all good, just go to the page otherwise show approriate error
    if (req.session.lessInterests) {
     res.session.lessInterests = false;

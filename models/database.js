@@ -351,7 +351,15 @@ var get_posts = function(post_id_list, callback) {
       console.log(err);
       callback("1", null);
     } else {
-      callback(null, data.Responses.posts);
+      res = data.Responses.posts;
+      res.sort(function(a, b) {
+        if (a.timestamp.S > b.timestamp.S) {
+          return -1;
+        } else {
+          return 1;
+        }
+      });
+      callback(null, res);
     }
   });
 }

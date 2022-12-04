@@ -221,14 +221,41 @@ var saveAccChanges= function(req, res) {
   }
   }
 
-
+    var getUserPage = function(req, res) {
+        if(req.session.username == null) {
+            res.render('signup.ejs', {message: null});
+            return;
+        }
+        db.getPostsForUser(req.session.username, function(err, data) {
+            if (err) {
+                res.render('home.ejs', {message: null});
+            } else {
+                db.getPosts(data, function(err, data) {
+                    if (err) {
+                        console.log(err);
+                        res.render('home.ejs', {message: null});
+                    } else {
+                        console.log(data);
+                        db.getFriends(req.session.username, function(err, dataf) {
+                            if (err) {
+                                console.log(err);
+                                res.render('home.ejs', {message: null});
+                            } else {
+                                res.render('user.ejs', {myposts: data, friends: dataf, currUser: req.session.username});
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
 
  var getHome = function(req, res) {
      if(req.session.username == null) {
          res.render('signup.ejs', {message: null});
          return;
      }
-     db.getPostsForUser(req.session.username, function(err, data) {
+     db.getPostsForUserFriends(req.session.username, function(err, data) {
          if (err) {
              res.render('signup.ejs', {message: null});
          } else {
@@ -333,6 +360,7 @@ var createAcc= function(req, res) {
     post_addpost: addPostAction,
     get_editaccount: getEditAccPage,
     post_saveaccountchanges: saveAccChanges,
+     get_user_page: getUserPage
   };
   
   module.exports = routes;

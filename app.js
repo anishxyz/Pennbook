@@ -32,6 +32,7 @@
    app.post('/checklogin', routes.post_checklogin);
    app.post('/createaccount', routes.post_createaccount);
    app.get('/home', routes.get_home);
+    app.get('/user', routes.get_user_page);
 
    app.get('/createpostpage', routes.get_createpost);
    app.post('/addpost', routes.post_addpost);

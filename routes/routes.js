@@ -124,9 +124,8 @@ var db = require('../models/database.js');
   });
 };
 
-
 // get inputs
-var saveAccChanges= function(req, res) {
+var saveAccChanges= async function(req, res) {
 
   var prevAffiliation = "";
   
@@ -146,13 +145,31 @@ var saveAccChanges= function(req, res) {
   var email = req.body.emailInput;
   var affiliation = req.body.affiliationInput;
   var birthday = req.body.birthdayInput;
+
+  posts = [];
   var interests = [];
    for (const key in req.body) {
     if (key.charAt(0) == '_') {
       interests.push(key.substring(1));
     }
    }
-   console.log(interests);
+   if (interests.length < 2) {
+    res.session.accChangeDidNotWork = true;
+    res.redirect('/editaccount');
+    return;
+   }
+   for (interest of interests) {
+    if (!req.session.interests.includes(interest)) {
+      interestText = req.session.username + " is now interested in " + interest + ".";
+      posts.push({
+        content: interestText,
+        type: "status_update",
+        timestamp: Date.now()
+      });
+    }
+   }
+   console.log(posts);
+   req.session.interests = interests;
    
 
   if (!(firstName=="" || lastName=="" || email==""
@@ -172,33 +189,48 @@ var saveAccChanges= function(req, res) {
 
                     // create new post with affiliation update if different from before
                     if(prevAffiliation!=affiliation) {
-                      const affiliationChangeText = req.session.username + " changed their affiliation to \"" + affiliation + "\"";
-                       await db.addPost(req.session.username, "status_update", affiliationChangeText, Date.now(), function(err, data) {   
-                        if ((err != null)) {
-                          console.log("COULD NOT POST STATUS UPDATE")
-                        } else {
-                        }
+                      const affiliationChangeText = req.session.username + " changed their affiliation to " + affiliation + ".";
+                      posts.push({
+                        content: affiliationChangeText,
+                        type: "status_update",
+                        timestamp: Date.now()
                       });
                     }
 
-
                     db.updateUserInfo(username, "birthday", birthday, function(err, data) {   
                       if ((err == null)) {
-                        if (password == "") {
-                          // only update pass if new pass entered
-                          res.redirect('/home');
-                        } else {
-                          console.log("Updating password to: ", password, "with username: ", username);
-                          db.updateUserInfo(username, "password", password, function(err, data) {   
-                            if ((err == null)) {
-                              res.redirect('/home');
-                            } else {
-                                console.log("ERROR", err)
-                                req.session.accChangeDidNotWork = true;
+                        db.updateUserInfo(username, "interests", interests, function(err, data) {
+                          if (err == null) {
+                            console.log("Here!!!!");
+                            db.addPosts(posts, username, function(err, data) {
+                              if (err == null) {
+                                // only update password if new one is entered
+                                if (password == "") {
+                                  res.redirect('/home');
+                                } else {
+                                  console.log("Updating password to: ", password, "with username: ", username);
+                                  db.updateUserInfo(username, "password", password, function(err, data) {
+                                    if (err == null) {
+                                      res.redirect('/home');
+                                    } else {
+                                      console.log("ERROR", err);
+                                      res.session.accChangeDidNotWork = true;
+                                      res.redirect('/editaccount');
+                                    }
+                                  })
+                                }
+                              } else {
+                                console.log("ERROR", err);
+                                res.session.accChangeDidNotWork = true;
                                 res.redirect('/editaccount');
-                            }
-                          });
-                        }
+                              }
+                            })
+                          } else {
+                            console.log("ERROR", err);
+                            res.session.accChangeDidNotWork = true;
+                            res.redirect('/editaccount');
+                          }
+                        });
                       } else {
                           console.log("ERROR", err)
                           req.session.accChangeDidNotWork = true;
@@ -265,7 +297,7 @@ var saveAccChanges= function(req, res) {
         });
     }
 
- var getHome = function(req, res) {
+var getHome = function(req, res) {
      if(req.session.username == null) {
          res.render('signup.ejs', {message: null});
          return;
@@ -285,6 +317,9 @@ var saveAccChanges= function(req, res) {
                         console.log(err);
                         res.render('signup.ejs', {message: null});
                     } else {
+                        for (post of data) {
+                          post.time_ago = time_ago(parseInt(post.timestamp.N));
+                        }
                         res.render('home.ejs', {posts: data, friends: dataf, currUser: req.session.username});
                     }
                 });
@@ -363,6 +398,62 @@ var createAcc= function(req, res) {
      res.redirect('/signup');
    }
   }
+
+// Helper function to get relative time
+function time_ago(time) {
+
+  switch (typeof time) {
+    case 'number':
+      break;
+    case 'string':
+      time = +new Date(time);
+      break;
+    case 'object':
+      if (time.constructor === Date) time = time.getTime();
+      break;
+    default:
+      time = +new Date();
+  }
+  var time_formats = [
+    [60, 'seconds', 1], // 60
+    [120, '1 minute ago', '1 minute from now'], // 60*2
+    [3600, 'minutes', 60], // 60*60, 60
+    [7200, '1 hour ago', '1 hour from now'], // 60*60*2
+    [86400, 'hours', 3600], // 60*60*24, 60*60
+    [172800, 'Yesterday', 'Tomorrow'], // 60*60*24*2
+    [604800, 'days', 86400], // 60*60*24*7, 60*60*24
+    [1209600, 'Last week', 'Next week'], // 60*60*24*7*4*2
+    [2419200, 'weeks', 604800], // 60*60*24*7*4, 60*60*24*7
+    [4838400, 'Last month', 'Next month'], // 60*60*24*7*4*2
+    [29030400, 'months', 2419200], // 60*60*24*7*4*12, 60*60*24*7*4
+    [58060800, 'Last year', 'Next year'], // 60*60*24*7*4*12*2
+    [2903040000, 'years', 29030400], // 60*60*24*7*4*12*100, 60*60*24*7*4*12
+    [5806080000, 'Last century', 'Next century'], // 60*60*24*7*4*12*100*2
+    [58060800000, 'centuries', 2903040000] // 60*60*24*7*4*12*100*20, 60*60*24*7*4*12*100
+  ];
+  var seconds = (+new Date() - time) / 1000,
+    token = 'ago',
+    list_choice = 1;
+
+  if (seconds == 0) {
+    return 'Just now'
+  }
+  if (seconds < 0) {
+    seconds = Math.abs(seconds);
+    token = 'from now';
+    list_choice = 2;
+  }
+  var i = 0,
+    format;
+  while (format = time_formats[i++])
+    if (seconds < format[0]) {
+      if (typeof format[2] == 'string')
+        return format[list_choice];
+      else
+        return Math.floor(seconds / format[2]) + ' ' + format[1] + ' ' + token;
+    }
+  return time;
+}
 
  var routes = { 
     get_main: getMain,

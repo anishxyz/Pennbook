@@ -127,16 +127,29 @@ var update_user_info = function(username, attribute, value, callback) {
   
   update_expression = "SET " + attribute + " = :value";
 
-  var params = {
-    TableName: "users",
-    Key: {
-      username: {S: username}
-    },
-    UpdateExpression: update_expression,
-    ExpressionAttributeValues: {
-      ":value": {S: value}
-    }
-  };
+  if (attribute == "interests") {
+    var params = {
+      TableName: "users",
+      Key: {
+        username: {S: username}
+      },
+      UpdateExpression: update_expression,
+      ExpressionAttributeValues: {
+        ":value": {SS: value}
+      }
+    };
+  } else {
+    var params = {
+      TableName: "users",
+      Key: {
+        username: {S: username}
+      },
+      UpdateExpression: update_expression,
+      ExpressionAttributeValues: {
+        ":value": {S: value}
+      }
+    };
+  }
 
   db.updateItem(params, function(err, data) {
     if (err) {
@@ -498,6 +511,113 @@ var add_post = function(creator, type, content, timestamp, callback) {
   });
 }
 
+// Adds multiple posts for one creator
+// Error 1 means issue while posting to database
+var add_posts = function(posts, creator, callback) {
+  if (posts == null || posts.length == 0) {
+    callback(null, null);
+    return;
+  }
+  ids = [];
+  requests = [];
+  for (post of posts) {
+    id = uuidv4();
+    ids.push(id);
+    timestamp = post.timestamp.toString();
+    requests.push({
+      PutRequest: {
+        Item: {
+          post_id: {
+            S: id
+          },
+          content: {
+            S: post.content
+          },
+          creator: {
+            S: creator
+          },
+          timestamp: {
+            N: timestamp
+          },
+          type: {
+            S: post.type
+          }
+        }
+      }
+    });
+  }
+
+  var params = {
+    RequestItems: {
+      posts: requests
+    }
+  };
+
+  console.log(requests);
+  db.batchWriteItem(params, function(err, data) {
+    console.log("Here!")
+    console.log(err);
+    console.log(data);
+    if (err) {
+      console.log(err);
+      callback("1", null);
+    } else {
+      // First get original posts set
+      params = {
+        KeyConditions: {
+          username: {
+            ComparisonOperator: 'EQ',
+            AttributeValueList: [ { S: creator } ]
+          }
+        },
+        TableName: "users_to_posts",
+        AttributesToGet: ["posts"]
+      };
+      db.query(params, function(err, data) {
+        console.log("Apples");
+        console.log(err);
+        console.log(data);
+        if (err) {
+          console.log(err);
+          callback("1", null);
+        } else {
+          if (data.Items.length == 0) {
+            newPosts = [];
+          } else {
+            newPosts = data.Items[0].posts.SS;
+          }
+          newPosts = newPosts.concat(ids);
+
+          console.log(newPosts);
+          // Update user_to_posts table
+          params = {
+            Item: {
+              username: {
+                S: creator
+              },
+              posts: {
+                SS: newPosts
+              }
+            },
+            TableName: "users_to_posts"
+          }
+          db.putItem(params, function(err, data) {
+            console.log("Bana");
+            console.log(err);
+            console.log(data);
+            if (err) {
+              console.log(err);
+              callback("1", null);
+            } else {
+              callback(null, ids);
+            }
+          })
+        }
+      });
+    }
+  });
+}
+
 // Error 1 means issue while writing to database
 // Returns comment_id as data
 var add_comment = function(creator, post_id, timestamp, content, callback) {
@@ -574,7 +694,8 @@ var database = {
   getPost: get_post,
   getPosts: get_posts,
   getUserInfo: get_user_info,
-  updateUserInfo: update_user_info
+  updateUserInfo: update_user_info,
+  addPosts: add_posts
 };
   
 module.exports = database;

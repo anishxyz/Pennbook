@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+    <style type="text/css">
+        .search-form {
+            align-items: center;
+            display: flex;
+        }
+
+        .user-slot {
+            margin: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">PennBook</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="#">Feed</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/chat">Chat</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/createpostpage">Create Post</a>
+                </li>
+            </ul>
+            <form class="d-flex justify-content-center">
+                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <%- currUser -%>
+                </button>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="#">My Wall</a>
+                    <a class="dropdown-item" href="/editaccount">Edit Account</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="/logout">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="row">
+        <div class="col-md-3">
+            <h3>Friends</h3>
+            <ul class="list-group">
+                <%if (friends != null) { %>
+                    <% friends.forEach(f => { %>
+                        <li class="list-group-item"><% f %></li>
+                    <% }); %>
+                <% } %>
+            </ul>
+        </div>
+        <div class="col-md-9">
+            <%if (posts != null) { %>
+                <% posts.forEach(p => { %>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title"><%- p.creator.S -%></h5>
+                            <p class="card-text"><%- p.content.S -%></p>
+                        </div>
+                        <div class="card-footer">
+                            <small class="text-muted"><%- p.timestamp.N -%></small>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } %>
+        </div>
+    </div>
+</div>
+</body>

@@ -207,18 +207,18 @@ var saveAccChanges= function(req, res) {
          if (err) {
              res.render('signup.ejs', {message: null});
          } else {
-          db.getPosts(data, function(err, data_posts) {
+          db.getPosts(data, function(err, data) {
             if (err) {
               console.log(err);
               res.render('signup.ejs', {message: null});
             } else {
                 console.log(data);
-                db.getFriends(req.session.username, function(err, data_friends) {
+                db.getFriends(req.session.username, function(err, dataf) {
                     if (err) {
                         console.log(err);
                         res.render('signup.ejs', {message: null});
                     } else {
-                        res.render('home.ejs', {posts: data_posts, friends: data_friends, currUser: req.session.username});
+                        res.render('home.ejs', {posts: data, friends: dataf, currUser: req.session.username});
                     }
                 });
             }

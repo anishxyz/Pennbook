@@ -247,11 +247,12 @@ var get_posts_for_user_friends = function(username, callback) {
           S: username
         }
       });
+      console.log(queries);
       params = {
         RequestItems: {
           users_to_posts: {
             Keys: queries,
-            ProjectionExpression: "post_id"
+            ProjectionExpression: "posts"
           }
         }
       };
@@ -260,7 +261,13 @@ var get_posts_for_user_friends = function(username, callback) {
           console.log(err);
           callback("2", null);
         } else {
-          callback(null, data.Items);
+          posts = [];
+          for (user_posts of data.Responses.users_to_posts) {
+            for (post_id of user_posts.posts.SS) {
+              posts.push(post_id);
+            }
+          }
+          callback(null, posts);
         }
       });
     }
@@ -276,7 +283,7 @@ var get_posts_for_user = function(username, callback) {
         AttributeValueList: [ { S: username } ]
       }
     },
-    AttributesToGet: ["post_id"],
+    AttributesToGet: ["posts"],
     TableName: "users_to_posts"
   };
 
@@ -285,14 +292,13 @@ var get_posts_for_user = function(username, callback) {
       console.log(err);
       callback("1", null);
     } else {
-      console.log("data");
       console.log(data.Items);
       if (data == null) {
         callback(null, []);
       } else {
         posts = [];
-        for (post of data.Items) {
-          posts.push(post.post_id.S);
+        for (post of data.Items[0].posts.SS) {
+          posts.push(post);
         }
         console.log(posts);
         callback(null, posts);
@@ -330,6 +336,10 @@ var get_post = function(post_id, callback) {
 // Gets information for multiple post_ids
 // Error 1 means issue while querying database
 var get_posts = function(post_id_list, callback) {
+  if (post_id_list == null || post_id_list.length == 0) {
+    callback(null, []);
+    return;
+  }
   queries = [];
   for (post_id of post_id_list) {
     queries.push({
@@ -353,7 +363,7 @@ var get_posts = function(post_id_list, callback) {
     } else {
       res = data.Responses.posts;
       res.sort(function(a, b) {
-        if (a.timestamp.S > b.timestamp.S) {
+        if (a.timestamp.N > b.timestamp.N) {
           return -1;
         } else {
           return 1;
@@ -439,24 +449,49 @@ var add_post = function(creator, type, content, timestamp, callback) {
       console.log(err);
       callback("1", null);
     } else {
+      // First get original posts set
       params = {
-        Item: {
+        KeyConditions: {
           username: {
-            S: creator
-          },
-          post_id: {
-            S: id
+            ComparisonOperator: 'EQ',
+            AttributeValueList: [ { S: creator } ]
           }
         },
-        TableName: "users_to_posts"
-      }
-      // Write to users_to_posts table
-      db.putItem(params, function(err, data) {
+        TableName: "users_to_posts",
+        AttributesToGet: ["posts"]
+      };
+      db.query(params, function(err, data) {
         if (err) {
           console.log(err);
           callback("1", null);
         } else {
-          callback(null, id);
+          if (data.Items.length == 0) {
+            newPosts = [];
+          } else {
+            newPosts = data.Items[0].posts.SS;
+          }
+          newPosts.push(id);
+
+          // Update posts table
+          params = {
+            Item: {
+              username: {
+                S: creator
+              },
+              posts: {
+                SS: newPosts
+              }
+            },
+            TableName: "users_to_posts"
+          }
+          db.putItem(params, function(err, data) {
+            if (err) {
+              console.log(err);
+              callback("1", null);
+            } else {
+              callback(null, id);
+            }
+          })
         }
       });
     }

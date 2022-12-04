@@ -363,7 +363,7 @@ var get_posts = function(post_id_list, callback) {
     } else {
       res = data.Responses.posts;
       res.sort(function(a, b) {
-        if (a.timestamp.S > b.timestamp.S) {
+        if (a.timestamp.N > b.timestamp.N) {
           return -1;
         } else {
           return 1;

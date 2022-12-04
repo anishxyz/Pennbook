@@ -224,6 +224,7 @@ var saveAccChanges= function(req, res) {
                         console.log(err);
                         res.render('signup.ejs', {message: null});
                     } else {
+                      console.log(req.session.username);
                         res.render('home.ejs', {posts: data, friends: dataf, currUser: req.session.username});
                     }
                 });

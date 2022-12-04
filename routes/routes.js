@@ -1,4 +1,4 @@
-const { addPost } = require('../models/database.js');
+const { addPost, getUserInfo } = require('../models/database.js');
 var db = require('../models/database.js');
 
 // routes here
@@ -102,6 +102,14 @@ var db = require('../models/database.js');
       message = "Change did not work, please try again."
     } 
 
+    console.log(data.interests);
+    interests = [];
+    for (interest of data.interests.SS) {
+      interests.push(interest);
+    }
+    req.session.interests = interests;
+    interests = interests.toString();
+
     res.render('editaccount.ejs', 
     {message: message, 
     user:req.session.username,
@@ -110,6 +118,7 @@ var db = require('../models/database.js');
     email: data.email.S,
     affiliation: data.affiliation.S,
     birthday: data.birthday.S,
+    interests: interests
     });
 
   });
@@ -137,8 +146,14 @@ var saveAccChanges= function(req, res) {
   var email = req.body.emailInput;
   var affiliation = req.body.affiliationInput;
   var birthday = req.body.birthdayInput;
-  // TODO: IMPLEMENT INTERESTS
-  var TEST_INTERESTS = ["TESTING ONLY MUST CHANGE"]
+  var interests = [];
+   for (const key in req.body) {
+    if (key.charAt(0) == '_') {
+      interests.push(key.substring(1));
+    }
+   }
+   console.log(interests);
+   
 
   if (!(firstName=="" || lastName=="" || email==""
   || username=="" || affiliation=="" || birthday == "")) {

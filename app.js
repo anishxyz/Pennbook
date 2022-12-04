@@ -36,6 +36,15 @@
    app.get('/createpostpage', routes.get_createpost);
    app.post('/addpost', routes.post_addpost);
 
+   app.get('/editaccount', routes.get_editaccount);
+   app.post('/saveaccountchanges', routes.post_saveaccountchanges);
+
+   app.get('/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('/');
+  })
+
+
    io.on('connection', (socket) => {
     socket.on('chat message', (msg) => {
         io.emit('chat message', msg);

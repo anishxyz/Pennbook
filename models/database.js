@@ -45,7 +45,6 @@ var create_user = function(username, email, firstName, lastName, password, affil
 
   // Hash password
 
-  // FIX LATER
   password = JSON.stringify(SHA256(password).words);
 
   user_exists(username, function(err, data) {
@@ -122,22 +121,26 @@ var get_user_info = function(username, callback) {
 // Updates provided attribute of user
 // Error 1 means issue while querying table
 var update_user_info = function(username, attribute, value, callback) {
+  if (attribute == "password") {
+    value = JSON.stringify(SHA256(value).words);
+  }
+  
   update_expression = "SET " + attribute + " = :value";
 
   var params = {
     TableName: "users",
     Key: {
-      username: username
+      username: {S: username}
     },
     UpdateExpression: update_expression,
     ExpressionAttributeValues: {
-      ":label": value
+      ":value": {S: value}
     }
   };
 
   db.updateItem(params, function(err, data) {
     if (err) {
-      callback("1", null);
+      callback(err, null);
     } else {
       callback(null, value);
     }

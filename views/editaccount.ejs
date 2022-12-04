@@ -1,0 +1,92 @@
+<html>
+<head>
+<title>Edit Account</title>
+
+<script type="text/javascript">
+
+window.onload = function() {
+
+    var currUser = '<%= user %>';
+    var firstName = '<%= firstName %>';
+    var lastName = '<%= lastName %>';
+    var email = '<%= email %>';
+    var affiliation = '<%= affiliation %>';
+    var birthday = '<%= birthday %>';
+
+    console.log("FIRST NAME", firstName);
+
+    document.getElementById('firstNameInput').value = firstName;
+    document.getElementById('lastNameInput').value = lastName;
+    document.getElementById('emailInput').value = email;
+    document.getElementById('affiliationInput').value = affiliation;
+    document.getElementById('birthdayInput').value = birthday;
+
+}
+
+    
+</script>
+<link rel="stylesheet"
+href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style type="text/css">
+body {
+padding-top: 40px;
+padding-bottom: 40px;
+background-color: white;
+}
+.signup-box {
+max-width: 600px;
+margin: 0 auto;
+}
+.signup-box .form-control {
+margin-bottom: 10px;
+}
+</style>
+</head>
+<body>
+<div class="signup-box">
+    <h4>Facebook Edit Account</h4>
+    <br>
+
+<h4>Edit Account Info Here</h4>
+<form method="post" action="/saveaccountchanges">
+    <h2> Your First Name: </h2>
+    <input type="text" name="firstNameInput" id="firstNameInput" size="20" class="form-control" placeholder="Your First Name">
+    <h2> Your Last Name: </h2>
+    <input type="text" name="lastNameInput" id="lastNameInput" size="20" class="form-control" placeholder="Your Last Name">
+    <h2> Email: </h2>
+    <input type="text" name="emailInput" id="emailInput" size="20" class="form-control" placeholder="example@example.com">
+    <h2> Enter New Password: </h2>
+    <input type="text" name="passInput" id="passInput" size="20" class="form-control" placeholder="Password">
+
+    <h2> Affiliation: </h2>
+    <input type="text" name="affiliationInput" id="affiliationInput" size="20" class="form-control" placeholder="UPenn, etc.">
+    
+    <h2> Birthday: </h2>
+    <input type="text" name="birthdayInput" id="birthdayInput" size="20" class="form-control" placeholder="XX/XX/XXXX">
+
+    <h2> Save Changes: </h2>
+    <input type="submit" name="submit" value="Save Changes" class="btn btn-lg btn-primary btn-block">
+  </form>
+</form>
+
+<br>
+<%if (message != null) { %>
+        <font color="red"><%= message %></font><p>
+    <% } %>
+<br>
+
+<br>
+<br>
+<br>
+</div>
+
+
+<br>
+<br>
+
+
+    
+  
+</body>
+</html>

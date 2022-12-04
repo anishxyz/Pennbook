@@ -122,16 +122,23 @@ var db = require('../models/database.js');
     });
 
   });
-
-
- 
-  
 };
-
 
 
 // get inputs
 var saveAccChanges= function(req, res) {
+
+  var prevAffiliation = "";
+  
+  db.getUserInfo(req.session.username, function(err, data) {  
+    if (!err) {
+      prevAffiliation = data.affiliation.S;
+    } else {
+      console.log("Could not get current affiliation.")
+    }
+  });
+
+
   var username = req.session.username;
   var firstName = req.body.firstNameInput;
   var lastName = req.body.lastNameInput;
@@ -160,8 +167,21 @@ var saveAccChanges= function(req, res) {
           if ((err == null)) {
             db.updateUserInfo(username, "email", email, function(err, data) {   
               if ((err == null)) {
-                db.updateUserInfo(username, "affiliation", affiliation, function(err, data) {   
+                db.updateUserInfo(username, "affiliation", affiliation, async function(err, data) {   
                   if ((err == null)) {
+
+                    // create new post with affiliation update if different from before
+                    if(prevAffiliation!=affiliation) {
+                      const affiliationChangeText = req.session.username + " changed their affiliation to \"" + affiliation + "\"";
+                       await db.addPost(req.session.username, "status_update", affiliationChangeText, Date.now(), function(err, data) {   
+                        if ((err != null)) {
+                          console.log("COULD NOT POST STATUS UPDATE")
+                        } else {
+                        }
+                      });
+                    }
+
+
                     db.updateUserInfo(username, "birthday", birthday, function(err, data) {   
                       if ((err == null)) {
                         if (password == "") {
@@ -216,10 +236,36 @@ var saveAccChanges= function(req, res) {
   }
   }
 
-
+    var getUserPage = function(req, res) {
+        if(req.session.username == null) {
+            res.render('signup.ejs', {message: null});
+            return;
+        }
+        db.getPostsForUser(req.session.username, function(err, data) {
+            if (err) {
+                res.render('home.ejs', {message: null});
+            } else {
+                db.getPosts(data, function(err, data) {
+                    if (err) {
+                        console.log(err);
+                        res.render('home.ejs', {message: null});
+                    } else {
+                        console.log(data);
+                        db.getFriends(req.session.username, function(err, dataf) {
+                            if (err) {
+                                console.log(err);
+                                res.render('home.ejs', {message: null});
+                            } else {
+                                res.render('user.ejs', {myposts: data, friends: dataf, currUser: req.session.username});
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
 
  var getHome = function(req, res) {
-
      if(req.session.username == null) {
          res.render('signup.ejs', {message: null});
          return;
@@ -239,7 +285,6 @@ var saveAccChanges= function(req, res) {
                         console.log(err);
                         res.render('signup.ejs', {message: null});
                     } else {
-                      console.log(req.session.username);
                         res.render('home.ejs', {posts: data, friends: dataf, currUser: req.session.username});
                     }
                 });
@@ -330,6 +375,7 @@ var createAcc= function(req, res) {
     post_addpost: addPostAction,
     get_editaccount: getEditAccPage,
     post_saveaccountchanges: saveAccChanges,
+     get_user_page: getUserPage
   };
   
   module.exports = routes;

@@ -38,14 +38,17 @@
                 <button class="btn btn-outline-success" type="submit">Search</button>
             </form>
         </div>
-        <!--feel free to put these wherever anish-->>
-        <a href="/createpostpage">Create Post</a> 
-        <br>
-        <br>
-        <a href="/logout">Log out</a>
-        <br>
-        <br>
-        <a href="/editaccount">Change account details</a> 
+        <div class="btn-group">
+            <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <% currUser %>
+            </button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" href="#">My Wall</a>
+                <a class="dropdown-item" href="/editaccount">Edit Account</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="/logout">Logout</a>
+            </div>
+        </div>
     </div>
 </nav>
 <div class="container">
@@ -53,18 +56,11 @@
         <div class="col-md-3">
             <h3>Friends</h3>
             <ul class="list-group">
-                <li class="list-group-item">
-                    Friend 1
-                </li>
-                <li class="list-group-item">
-                    Friend 2
-                </li>
-                <li class="list-group-item">
-                    Friend 3
-                </li>
-                <li class="list-group-item">
-                    Friend 4
-                </li>
+                <%if (friends != null) { %>
+                    <% friends.forEach(f => { %>
+                        <li class="list-group-item"><% f %></li>
+                    <% }); %>
+                <% } %>
             </ul>
         </div>
         <div class="col-md-9">
@@ -81,50 +77,6 @@
                     </div>
                 <% }); %>
             <% } %>
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Friend 1</h5>
-                    <p class="card-text">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vel justo nec ante sagittis pretium.
-                    </p>
-                </div>
-                <div class="card-footer">
-                    <small class="text-muted">3 hours ago</small>
-                </div>
-            </div>
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Friend 2</h5>
-                    <p class="card-text">
-                        Donec mollis nisi id tellus sollicitudin, ut iaculis arcu rhoncus. Vivamus sit amet mauris vel nibh porttitor bibendum.
-                    </p>
-                </div>
-                <div class="card-footer">
-                    <small class="text-muted">5 hours ago</small>
-                </div>
-            </div>
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Friend 3</h5>
-                    <p class="card-text">
-                        Suspendisse commodo est eu dui laoreet, at eleifend ipsum bibendum. Suspendisse potenti.
-                    </p>
-                </div>
-                <div class="card-footer">
-                    <small class="text-muted">Yesterday</small>
-                </div>
-            </div>
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Friend 4</h5>
-                    <p class="card-text">
-                        Maecenas congue, leo eu tincidunt aliquam, nibh erat consectetur purus, sit amet fringilla nisl felis at leo.
-                    </p>
-                </div>
-                <div class="card-footer">
-                    <small class="text-muted">2 days ago</small>
-                </div>
-            </div>
         </div>
     </div>
 </div>

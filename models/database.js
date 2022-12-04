@@ -423,6 +423,7 @@ var login_check = function(username, password, callback) {
 
 // Error 1 means issue while adding to database
 // Returns post_id as data
+// types: post, status_update, friend_update
 var add_post = function(creator, type, content, timestamp, callback) {
   console.log("Creating new post with content:");
   console.log("Creator: " + creator);

@@ -43,7 +43,7 @@
                     <%- currUser -%>
                 </button>
                 <div class="dropdown-menu dropdown-menu-end">
-                    <a class="dropdown-item" href="#">My Wall</a>
+                    <a class="dropdown-item" href="/user">My Wall</a>
                     <a class="dropdown-item" href="/editaccount">Edit Account</a>
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item" href="/logout">Logout</a>
@@ -71,7 +71,8 @@
             <h3>My Posts</h3>
             <%if (myposts != null) { %>
                 <% myposts.forEach(p => { %>
-                    <div class="card mb-3">
+                <%if (p.type.S == "post") {%>
+                    <div class="card mb-3 bg-light">
                         <div class="card-body">
                             <h5 class="card-title"><%- p.creator.S -%></h5>
                             <p class="card-text"><%- p.content.S -%></p>
@@ -80,6 +81,29 @@
                             <small class="text-muted"><%- p.timestamp.N -%></small>
                         </div>
                     </div>
+                <%}%>
+                <%if (p.type.S == "status_update") {%>
+                    <div class="card text-white mb-3 bg-secondary">
+                        <div class="card-body">
+                            <h5 class="card-title"><%- p.creator.S -%></h5>
+                            <p class="card-text"><%- p.content.S -%></p>
+                        </div>
+                        <div class="card-footer">
+                            <small class="text-white"><%- p.timestamp.N -%></small>
+                        </div>
+                    </div>
+                <%}%>
+                <%if (p.type.S == "friend_update") {%>
+                    <div class="card text-white mb-3 bg-success">
+                        <div class="card-body">
+                            <h5 class="card-title"><%- p.creator.S -%></h5>
+                            <p class="card-text"><%- p.content.S -%></p>
+                        </div>
+                        <div class="card-footer">
+                            <small class="text-white"><%- p.timestamp.N -%></small>
+                        </div>
+                    </div>
+                <%}%>
                 <% }); %>
             <% } %>
         </div>

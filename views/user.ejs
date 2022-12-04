@@ -25,7 +25,7 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="#">Feed</a>
+                    <a class="nav-link" aria-current="page" href="/home">Feed</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="/chat">Chat</a>
@@ -34,7 +34,7 @@
                     <a class="nav-link" href="/createpostpage">Create Post</a>
                 </li>
             </ul>
-            <form class="d-flex justify-content-center">
+            <form class="d-flex justify-content-center" style="padding: 5px 10px;">
                 <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
                 <button class="btn btn-outline-success" type="submit">Search</button>
             </form>
@@ -52,7 +52,7 @@
         </div>
     </div>
 </nav>
-<div class="container">
+<div class="container" style="padding: 25px 0;">
     <div class="row">
         <div class="col-md-3">
             <h3>Friends</h3>
@@ -62,11 +62,15 @@
                         <li class="list-group-item"><% f %></li>
                     <% }); %>
                 <% } %>
+                <li class="list-group-item">Johnny</li>
+                <li class="list-group-item">Harry</li>
+                <li class="list-group-item">David</li>
             </ul>
         </div>
         <div class="col-md-9">
-            <%if (posts != null) { %>
-                <% posts.forEach(p => { %>
+            <h3>My Posts</h3>
+            <%if (myposts != null) { %>
+                <% myposts.forEach(p => { %>
                     <div class="card mb-3">
                         <div class="card-body">
                             <h5 class="card-title"><%- p.creator.S -%></h5>

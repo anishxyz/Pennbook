@@ -198,7 +198,6 @@ var saveAccChanges= async function(req, res) {
                       if ((err == null)) {
                         db.updateUserInfo(username, "interests", interests, function(err, data) {
                           if (err == null) {
-                            console.log("Here!!!!");
                             db.addPosts(posts, username, function(err, data) {
                               if (err == null) {
                                 // only update password if new one is entered
@@ -317,7 +316,7 @@ var getHome = function(req, res) {
                         for (post of data) {
                           post.time_ago = time_ago(parseInt(post.timestamp.N));
                         }
-                        res.render('home.ejs', {posts: data, friends: dataf, currUser: req.session.username, currTime: Date.now()});
+                        res.render('home.ejs', {posts: data, friends: dataf, currUser: req.session.username});
                     }
                 });
             }
@@ -396,6 +395,28 @@ var createAcc= function(req, res) {
    }
   }
 
+// AJAX server side code to fetch posts
+var updatePosts = function(req, res) {
+  db.getPostsForUserFriends(req.session.username, function(err, data) {
+    if (err) {
+      console.log(err);
+      res.send(JSON.stringify([]));
+    } else {
+      db.getPosts(data, function(err, data) {
+        if (err) {
+          console.log(err);
+          res.send(JSON.stringify([]));
+        } else {
+          for (post of data) {
+            post.time_ago = time_ago(parseInt(post.timestamp.N));
+          }
+          res.send(JSON.stringify(data));
+        }
+      });
+    }
+  });
+}
+
 // Helper function to get relative time
 function time_ago(time) {
 
@@ -432,7 +453,7 @@ function time_ago(time) {
     token = 'ago',
     list_choice = 1;
 
-  if (seconds == 0) {
+  if (seconds < 60) {
     return 'Just now'
   }
   if (seconds < 0) {
@@ -463,7 +484,8 @@ function time_ago(time) {
     post_addpost: addPostAction,
     get_editaccount: getEditAccPage,
     post_saveaccountchanges: saveAccChanges,
-     get_user_page: getUserPage
+    get_user_page: getUserPage,
+    update_posts: updatePosts
   };
   
   module.exports = routes;

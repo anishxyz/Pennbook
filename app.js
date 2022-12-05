@@ -40,6 +40,8 @@
    app.get('/editaccount', routes.get_editaccount);
    app.post('/saveaccountchanges', routes.post_saveaccountchanges);
 
+   app.get('/updateposts', routes.update_posts);
+
    app.get('/logout', (req, res) => {
     req.session.destroy();
     res.redirect('/');

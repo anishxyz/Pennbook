@@ -242,13 +242,11 @@ var get_friends = function(username, callback) {
   });
 }
 
-// Gets posts
+// Gets posts for all friends of provided user
 // Error 1 means issue while querying for friends
 // Error 2 means issue while querying for posts
 var get_posts_for_user_friends = function(username, callback) {
   get_friends(username, function(err, data) {
-    console.log("Top");
-    console.log(data);
     if (err) {
       callback("1", null);
     } else {
@@ -275,9 +273,6 @@ var get_posts_for_user_friends = function(username, callback) {
         }
       };
       db.batchGetItem(params, function(err, data) {
-        console.log("sec");
-        console.log(data);
-        console.log(err);
         console.log
         if (err) {
           console.log(err);
@@ -565,9 +560,6 @@ var add_posts = function(posts, creator, callback) {
 
   console.log(requests);
   db.batchWriteItem(params, function(err, data) {
-    console.log("Here!")
-    console.log(err);
-    console.log(data);
     if (err) {
       console.log(err);
       callback("1", null);
@@ -584,9 +576,6 @@ var add_posts = function(posts, creator, callback) {
         AttributesToGet: ["posts"]
       };
       db.query(params, function(err, data) {
-        console.log("Apples");
-        console.log(err);
-        console.log(data);
         if (err) {
           console.log(err);
           callback("1", null);
@@ -612,9 +601,6 @@ var add_posts = function(posts, creator, callback) {
             TableName: "users_to_posts"
           }
           db.putItem(params, function(err, data) {
-            console.log("Bana");
-            console.log(err);
-            console.log(data);
             if (err) {
               console.log(err);
               callback("1", null);

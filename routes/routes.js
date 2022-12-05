@@ -317,7 +317,7 @@ var getHome = function(req, res) {
                         for (post of data) {
                           post.time_ago = time_ago(parseInt(post.timestamp.N));
                         }
-                        res.render('home.ejs', {posts: data, friends: dataf, currUser: req.session.username});
+                        res.render('home.ejs', {posts: data, friends: dataf, currUser: req.session.username, currTime: Date.now()});
                     }
                 });
             }

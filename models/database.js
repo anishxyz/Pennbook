@@ -222,6 +222,9 @@ var get_friends = function(username, callback) {
   };
 
   db.query(params, function(err, data) {
+    console.log("Here!!");
+    console.log(err);
+    console.log(data);
     if (err) {
       console.log(err);
       callback("1", null);
@@ -231,7 +234,7 @@ var get_friends = function(username, callback) {
       } else {
         friends = [];
         for (friend of data.Items) {
-          friends.push(friend.S);
+          friends.push(friend.friend2.S);
         }
         callback(null, friends);
       }
@@ -244,6 +247,8 @@ var get_friends = function(username, callback) {
 // Error 2 means issue while querying for posts
 var get_posts_for_user_friends = function(username, callback) {
   get_friends(username, function(err, data) {
+    console.log("Top");
+    console.log(data);
     if (err) {
       callback("1", null);
     } else {
@@ -270,6 +275,10 @@ var get_posts_for_user_friends = function(username, callback) {
         }
       };
       db.batchGetItem(params, function(err, data) {
+        console.log("sec");
+        console.log(data);
+        console.log(err);
+        console.log
         if (err) {
           console.log(err);
           callback("2", null);

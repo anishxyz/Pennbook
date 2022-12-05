@@ -1,0 +1,58 @@
+<html>
+<head>
+<title>Enter Chat</title>
+<link rel="stylesheet"
+href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style type="text/css">
+body {
+padding-top: 40px;
+padding-bottom: 40px;
+background-color: white;
+}
+.createpost-box {
+max-width: 600px;
+margin: 0 auto;
+}
+.createpost-box .form-control {
+margin-bottom: 10px;
+}
+</style>
+</head>
+<body>
+<div class="createpost-box">
+    <br>
+
+<h4>Enter Chat</h4>
+<form method="post" action="/chat">
+    <h2> Who do you want to chat with? Enter their username: </h2>
+    <input type="text" name="usernameInput" size="20" class="form-control" placeholder="Username">
+    <br>
+    <br>
+    <input type="submit" name="submit" value="Enter Chat" class="btn btn-lg btn-primary btn-block">
+  </form>
+</form>
+<br>
+<br>
+<br>
+<a href="/home">Go Back Home</a> 
+<br>
+<%if (message != null) { %>
+        <font color="red"><%= message %></font><p>
+    <% } %>
+<br>
+
+<br>
+<br>
+<br>
+</div>
+
+
+<br>
+<br>
+
+
+    
+  
+</body>
+</html>

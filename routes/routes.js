@@ -3,7 +3,9 @@ var db = require('../models/database.js');
 
 // routes here
  var getMain = function(req, res) {
-   if (req.session.loginBlank != true && req.session.loginIncorrect != true) {
+  if (req.session.username != null) {
+    res.redirect('/home');
+  } else if (req.session.loginBlank != true && req.session.loginIncorrect != true) {
        res.render('loginpage.ejs', {message: null});
   } else if (req.session.loginBlank == true) {
        req.session.loginBlank=false;
@@ -45,7 +47,13 @@ var db = require('../models/database.js');
  
        if (err == null) {
          req.session.username=uname;
-         res.redirect('/home');
+         // Make user online
+         db.updateUserInfo(uname, "online", "yes", function(err, data) {
+          if (err) {
+            console.log(err);
+          }
+          res.redirect('/home');
+         });
        } else {
          req.session.loginIncorrect=true;
          res.redirect('/');
@@ -58,7 +66,7 @@ var db = require('../models/database.js');
  var getsignup = function(req, res) {
    // if all good, just go to the page otherwise show approriate error
    if (req.session.lessInterests) {
-    res.session.lessInterests = false;
+    req.session.lessInterests = false;
     res.render('signup.ejs', {message: "Please enter at least two interests."});
    } else if (!req.session.unameExist && !req.session.blankSign) {
     res.render('signup.ejs', {message: null});
@@ -86,6 +94,7 @@ var db = require('../models/database.js');
 
   if (req.session.username == null) {
     res.render('signup.ejs', {message: null});
+    return;
   }
 
   db.getUserInfo(req.session.username, function(err, data) {  
@@ -266,26 +275,36 @@ var saveAccChanges= async function(req, res) {
 
     var getUserPage = function(req, res) {
         if(req.session.username == null) {
-            res.render('signup.ejs', {message: null});
+            res.redirect('signup.ejs');
             return;
         }
         db.getPostsForUser(req.session.username, function(err, data) {
             if (err) {
-                res.render('home.ejs', {message: null});
+                res.redirect('home.ejs');
             } else {
                 db.getPosts(data, function(err, data) {
                     if (err) {
                         console.log(err);
-                        res.render('home.ejs', {message: null});
+                        res.redirect('home.ejs');
                     } else {
-                        console.log(data);
                         db.getFriends(req.session.username, function(err, dataf) {
-                            if (err) {
+                          if (err) {
+                            console.log(err);
+                            res.redirect('home.ejs');
+                          } else {
+                            db.getUsersStatus(dataf, function(err, dataf2) {
+                              if (err) {
                                 console.log(err);
-                                res.render('home.ejs', {message: null});
-                            } else {
-                                res.render('user.ejs', {myposts: data, friends: dataf, currUser: req.session.username});
-                            }
+                                res.redirect('home.ejs');
+                              } else {
+                                for (post of data) {
+                                  post.time_ago = time_ago(parseInt(post.timestamp.N));
+                                }
+                                console.log(dataf2);
+                                res.render('user.ejs', {myposts: data, friends: dataf2, currUser: req.session.username});
+                              }
+                            });
+                          }
                         });
                     }
                 });
@@ -295,28 +314,34 @@ var saveAccChanges= async function(req, res) {
 
 var getHome = function(req, res) {
      if(req.session.username == null) {
-         res.render('signup.ejs', {message: null});
+        res.redirect('signup.ejs');
          return;
      }
      db.getPostsForUserFriends(req.session.username, function(err, data) {
          if (err) {
-             res.render('signup.ejs', {message: null});
+          res.redirect('signup.ejs');
          } else {
           db.getPosts(data, function(err, data) {
             if (err) {
               console.log(err);
-              res.render('signup.ejs', {message: null});
+              res.redirect('signup.ejs');
             } else {
-                console.log(data);
                 db.getFriends(req.session.username, function(err, dataf) {
                     if (err) {
                         console.log(err);
-                        res.render('signup.ejs', {message: null});
+                        res.redirect('signup.ejs');
                     } else {
-                        for (post of data) {
-                          post.time_ago = time_ago(parseInt(post.timestamp.N));
+                      db.getUsersStatus(dataf, function(err, dataf2) {
+                        if (err) {
+                          console.log(err);
+                          res.redirect('signup.ejs');
+                        } else {
+                          for (post of data) {
+                            post.time_ago = time_ago(parseInt(post.timestamp.N));
+                          }
+                          res.render('home.ejs', {posts: data, friends: dataf2, currUser: req.session.username});
                         }
-                        res.render('home.ejs', {posts: data, friends: dataf, currUser: req.session.username});
+                      });
                     }
                 });
             }
@@ -395,6 +420,16 @@ var createAcc= function(req, res) {
    }
   }
 
+var logout = function(req, res) {
+  db.updateUserInfo(req.session.username, "online", "no", function(err, data) {
+    if (err) {
+      console.log(err);
+    }
+    req.session.destroy();
+    res.redirect('/');
+  });
+}
+
 // AJAX server side code to fetch posts
 var updatePosts = function(req, res) {
   db.getPostsForUserFriends(req.session.username, function(err, data) {
@@ -411,6 +446,25 @@ var updatePosts = function(req, res) {
             post.time_ago = time_ago(parseInt(post.timestamp.N));
           }
           res.send(JSON.stringify(data));
+        }
+      });
+    }
+  });
+}
+
+// AJAX server side code to get online statuses for users
+var updateFriends = function(req, res) {
+  db.getFriends(req.session.username, function(err, data) {
+    if (err) {
+      console.log(err);
+      res.send(JSON.stringify([]));
+    } else {
+      db.getUsersStatus(data, function(err, dataf) {
+        if (err) {
+          console.log(err);
+          res.send(JSON.stringify([]));
+        } else {
+          res.send(JSON.stringify(dataf));
         }
       });
     }
@@ -485,7 +539,9 @@ function time_ago(time) {
     get_editaccount: getEditAccPage,
     post_saveaccountchanges: saveAccChanges,
     get_user_page: getUserPage,
-    update_posts: updatePosts
+    update_posts: updatePosts,
+    logout: logout,
+    update_friends: updateFriends
   };
   
   module.exports = routes;

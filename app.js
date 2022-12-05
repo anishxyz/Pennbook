@@ -41,12 +41,9 @@
    app.post('/saveaccountchanges', routes.post_saveaccountchanges);
 
    app.get('/updateposts', routes.update_posts);
+   app.get('/updatefriends', routes.update_friends);
 
-   app.get('/logout', (req, res) => {
-    req.session.destroy();
-    res.redirect('/');
-  })
-
+   app.get('/logout', routes.logout);
 
    io.on('connection', (socket) => {
     socket.on('chat message', (msg) => {

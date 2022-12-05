@@ -79,6 +79,9 @@ var create_user = function(username, email, firstName, lastName, password, affil
             },
             interests: {
               SS: interests
+            },
+            online: {
+              S: "yes"
             }
           },
           TableName: "users"
@@ -136,6 +139,21 @@ var update_user_info = function(username, attribute, value, callback) {
       UpdateExpression: update_expression,
       ExpressionAttributeValues: {
         ":value": {SS: value}
+      }
+    };
+  } else if (attribute == "online") {
+    update_expression = "SET #o = :value";
+    var params = {
+      TableName: "users",
+      Key: {
+        username: {S: username}
+      },
+      UpdateExpression: update_expression,
+      ExpressionAttributeValues: {
+        ":value": {S: value}
+      },
+      ExpressionAttributeNames: {
+        "#o": "online"
       }
     };
   } else {
@@ -222,9 +240,6 @@ var get_friends = function(username, callback) {
   };
 
   db.query(params, function(err, data) {
-    console.log("Here!!");
-    console.log(err);
-    console.log(data);
     if (err) {
       console.log(err);
       callback("1", null);
@@ -263,7 +278,6 @@ var get_posts_for_user_friends = function(username, callback) {
           S: username
         }
       });
-      console.log(queries);
       params = {
         RequestItems: {
           users_to_posts: {
@@ -273,7 +287,6 @@ var get_posts_for_user_friends = function(username, callback) {
         }
       };
       db.batchGetItem(params, function(err, data) {
-        console.log
         if (err) {
           console.log(err);
           callback("2", null);
@@ -289,6 +302,43 @@ var get_posts_for_user_friends = function(username, callback) {
       });
     }
   });
+}
+
+// Gets login status for multiple users
+var get_users_status = function(users, callback) {
+  if (users == null || users.length == 0) {
+    callback(null, []);
+    return;
+  }
+  queries = [];
+  for (username of users) {
+    queries.push({
+      username: {
+        S: username
+      }
+    });
+  }
+    console.log(queries);
+    var params = {
+      RequestItems: {
+        users: {
+          Keys: queries,
+          ExpressionAttributeNames: {
+            "#u": "username",
+            "#o": "online"
+          },
+          ProjectionExpression: "#u, #o"
+        }
+      }
+    };
+    db.batchGetItem(params, function(err, data) {
+      if (err) {
+        console.log(err);
+        callback("1", null);
+      } else {
+        callback(null, data.Responses.users);
+      }
+    });
 }
 
 // Error 1 means issue while querying
@@ -372,7 +422,6 @@ var get_posts = function(post_id_list, callback) {
       }
     }
   };
-  console.log(params);
   db.batchGetItem(params, function(err, data) {
     if (err) {
       console.log(err);
@@ -691,7 +740,8 @@ var database = {
   getPosts: get_posts,
   getUserInfo: get_user_info,
   updateUserInfo: update_user_info,
-  addPosts: add_posts
+  addPosts: add_posts,
+  getUsersStatus: get_users_status
 };
   
 module.exports = database;

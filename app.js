@@ -27,7 +27,10 @@
       POST is often used when submitting web forms ('method="post"'). */
    
    app.get('/', routes.get_main);
-   app.get('/chat', routes.get_chat);
+
+   app.get('/enterchat', routes.get_enter_chat);
+   app.post('/chat', routes.post_start_chat);
+
    app.get('/signup', routes.get_signup);
    app.post('/checklogin', routes.post_checklogin);
    app.post('/createaccount', routes.post_createaccount);
@@ -46,8 +49,9 @@
    app.get('/logout', routes.logout);
 
    io.on('connection', (socket) => {
-    socket.on('chat message', (msg) => {
-        io.emit('chat message', msg);
+    socket.on('chat message', ({msg, sender, recipient}) => {
+      console.log("RECIPIENT IN APP.JS " + recipient);
+        io.emit('chat message', {msg, sender, recipient});
         console.log('message: ' + msg);
       });
     console.log('a user connected');
@@ -55,7 +59,7 @@
         console.log('user disconnected');
       });
       
-  });
+  })
 
    
    /* Run the server */

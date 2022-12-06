@@ -3,9 +3,9 @@ var db = require('../models/database.js');
 
 // routes here
  var getMain = function(req, res) {
-  if (req.session.username != null) {
+   if (req.session.username != null) {
     res.redirect('/home');
-  } else if (req.session.loginBlank != true && req.session.loginIncorrect != true) {
+   } else if (req.session.loginBlank != true && req.session.loginIncorrect != true) {
        res.render('loginpage.ejs', {message: null});
   } else if (req.session.loginBlank == true) {
        req.session.loginBlank=false;
@@ -16,8 +16,14 @@ var db = require('../models/database.js');
   }
 };
 
- var getChat = function(req, res) {
-    res.render('chat.ejs', {message: null});
+
+var getEnterChat = function(req, res) {
+  res.render('enterchat.ejs', {message: null});
+};
+
+ var startChat = function(req, res) {
+    var otherUser = req.body.usernameInput;
+    res.render('chat.ejs', {message: null, user: req.session.username, otherUser: otherUser});
  };
 
  var getCreatePost = function(req, res) {
@@ -81,17 +87,6 @@ var db = require('../models/database.js');
  };
 
  var getEditAccPage = function(req, res) {
-  // if (!req.session.unameExist && !req.session.blankSign) {
-  //  res.render('signup.ejs', {message: null});
-  // } else if (req.session.unameExist) {
-  //  req.session.unameExist=false;
-  //   res.render('signup.ejs', {message: 'Username already exists.'});
-  //  } else if (req.session.blankSign) {
-  //  req.session.blankSign=false;
-  //   res.render('signup.ejs', {message: 'Please complete all fields.'});
-   
-  //  }
-
   if (req.session.username == null) {
     res.render('signup.ejs', {message: null});
     return;
@@ -529,7 +524,8 @@ function time_ago(time) {
 
  var routes = { 
     get_main: getMain,
-    get_chat: getChat,
+    post_start_chat: startChat,
+    get_enter_chat: getEnterChat,
     post_checklogin: logincheck,
     get_signup: getsignup,
     post_createaccount: createAcc,

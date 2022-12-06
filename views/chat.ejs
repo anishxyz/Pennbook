@@ -33,14 +33,32 @@
 
   var currUser = "";
   var otherUser = "";
+  var prevMessages = [];
 
 
 window.onload = function() {
 
   currUser = '<%= user %>';
-  otherUser = '<%= otherUser %>'
+  otherUser = '<%= otherUser %>';
+  prevMessages = '<%= prevMessages %>';
 
+  prevMessages = prevMessages.split(",");
+
+
+  console.log("PREV MES  ", prevMessages);
   console.log("DOING AN ONLOAD WITH CURR USER ", currUser, " AND OTHERUSER ", otherUser);
+
+  for (var i = 0; i < prevMessages.length; i++) {
+    console.log("MSG HERE", prevMessages[i])
+    var item = document.createElement('li');
+      item.textContent = prevMessages[i];
+      messages.appendChild(item);
+      window.scrollTo(0, document.body.scrollHeight);
+}
+
+
+
+
 }
 
 
@@ -56,6 +74,7 @@ window.onload = function() {
       var sender = currUser;
       var recipient = otherUser;
       socket.emit('chat message', ({msg, sender, recipient}));
+      // add to db
       console.log("OTHER USER ON EMIT ", recipient)
       console.log("MESSAGE ON EMIT ", msg)
       input.value = '';

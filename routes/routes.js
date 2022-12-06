@@ -23,7 +23,18 @@ var getEnterChat = function(req, res) {
 
  var startChat = function(req, res) {
     var otherUser = req.body.usernameInput;
-    res.render('chat.ejs', {message: null, user: req.session.username, otherUser: otherUser});
+
+    // sort list of users then stringfy that list and look in db if any existing chats with this group
+
+    var list_of_users = [req.session.username, otherUser];
+    var sorted_list_of_users_string = list_of_users.sort().toString();
+
+    var prevMessages = ["test", "hello"];
+    // get prev messages from db
+
+    
+
+    res.render('chat.ejs', {message: null, user: req.session.username, otherUser: otherUser, prevMessages: prevMessages.toString()});
  };
 
  var getCreatePost = function(req, res) {

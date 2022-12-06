@@ -727,6 +727,165 @@ var add_comment = function(creator, post_id, timestamp, content, callback) {
   });
 }
 
+// Creates a new chat
+var create_chat = function(users, callback) {
+  users.sort();
+  usersString = users.join(",");
+  id = uuidv4();
+  requests = [];
+  for (user of users) {
+    requests.push({
+      PutRequest: {
+        Item: {
+          user: {
+            S: user
+          },
+          chat_id: {
+            S: id
+          }
+        }
+      }
+    });
+  }
+
+  // First write to users_to_chats
+  var params = {
+    RequestItems: {
+      users_to_chats: requests
+    }
+  };
+  db.batchWriteItem(params, function(err, data) {
+    if (err) {
+      console.log(err);
+      callback("1", null);
+    } else {
+      // Next write to userlists_to_chats
+      params = {
+        Item: {
+          userlist: {
+            S: usersString
+          },
+          chat_id: {
+            S: id
+          }
+        },
+        TableName: "userlists_to_chats"
+      }
+      db.putItem(params, function(err, data) {
+        if (err) {
+          console.log(err);
+          callback("1", null);
+        } else {
+          callback(null, id);
+        }
+      });
+    }
+  });
+}
+
+// Gets chat_id for specified list of users
+var get_chat_for_users = function(users, callback) {
+  users.sort();
+  usersString = users.join(",");
+  var params = {
+    KeyConditions: {
+      userlist: {
+        ComparisonOperator: 'EQ',
+        AttributeValueList: [ { S: usersString } ]
+      }
+    },
+    TableName: "userlists_to_chats"
+  };
+
+  db.query(params, function(err, data) {
+    if (err) {
+      console.log(err);
+      callback("1", null);
+    } else {
+      callback(null, data.Items[0].chat_id.S);
+    }
+  })
+}
+
+// Gets all chat_ids for a user
+var get_chats_for_user = function(username, callback) {
+  var params = {
+    KeyConditions: {
+      username: {
+        ComparisonOperator: 'EQ',
+        AttributeValueList: [ { S: username } ]
+      }
+    },
+    AttributesToGet: ["chat_id"],
+    TableName: "users_to_chats"
+  };
+
+  db.query(params, function(err, data) {
+    if (err) {
+      console.log(err);
+      callback("1", null);
+    } else {
+      chat_ids = [];
+      for (item of data.Items) {
+        chat_ids.push(item.chat_id.S);
+      }
+      callback(null, chat_ids);
+    }
+  });
+}
+
+// Adds a message to a chat
+var add_message_to_chat = function(message, creator, chat_id, timestamp, callback) {
+  var params = {
+    Item: {
+      chat_id: {
+        S: chat_id
+      },
+      creator: {
+        S: creator
+      },
+      message: {
+        S: message
+      },
+      timestamp: {
+        N: timestamp.toString()
+      }
+    },
+    TableName: "chats"
+  };
+
+  db.putItem(params, function(err, data) {
+    if (err) {
+      console.log(err);
+      callback("1", null);
+    } else {
+      callback(null, 'Success');
+    }
+  });
+}
+
+// Gets all messages in a chat
+var get_chat_messages = function(chat_id, callback) {
+  var params = {
+    KeyConditions: {
+      chat_id: {
+        ComparisonOperator: 'EQ',
+        AttributeValueList: [ { S: chat_id } ]
+      }
+    },
+    TableName: "chats"
+  };
+
+  db.query(params, function(err, data) {
+    if (err) {
+      console.log(err);
+      callback("1", null);
+    } else {
+      callback(null, data.Items);
+    }
+  });
+}
+
 var database = { 
   createUser: create_user,
   loginCheck: login_check,
@@ -741,7 +900,12 @@ var database = {
   getUserInfo: get_user_info,
   updateUserInfo: update_user_info,
   addPosts: add_posts,
-  getUsersStatus: get_users_status
+  getUsersStatus: get_users_status,
+  createChat: create_chat,
+  getChatsForUsers: get_chat_for_users,
+  getChatsForUser: get_chats_for_user,
+  addMessageToChat: add_message_to_chat,
+  getChatMessages: get_chat_messages
 };
   
 module.exports = database;

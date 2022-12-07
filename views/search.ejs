@@ -27,6 +27,7 @@
         setTimeout(updatePosts, 50000);
     }
 
+
     function updateFriends() {
         $.getJSON('http://localhost:8080/updatefriends', function(newFriends) {
             if (newFriends == null || newFriends.length == 0) {

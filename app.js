@@ -48,6 +48,8 @@
 
    app.get('/logout', routes.logout);
 
+app.get('/search', routes.get_search);
+
    io.on('connection', (socket) => {
     socket.on('chat message', ({msg, sender, recipient}) => {
       console.log("RECIPIENT IN APP.JS " + recipient);

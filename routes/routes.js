@@ -21,20 +21,45 @@ var getEnterChat = function(req, res) {
   res.render('enterchat.ejs', {message: null});
 };
 
- var startChat = function(req, res) {
+ var startChat = async function(req, res) {
     var otherUser = req.body.usernameInput;
 
     // sort list of users then stringfy that list and look in db if any existing chats with this group
 
     var list_of_users = [req.session.username, otherUser];
-    var sorted_list_of_users_string = list_of_users.sort().toString();
+    var sorted_list_of_users = list_of_users.sort();
+    var prevMessages = [];
+    var chat_id = 0;
 
-    var prevMessages = ["test", "hello"];
+    await db.getChatsForUsers(sorted_list_of_users, function(err, data) {    
+        if (data == null) {
+          // create a new chat
+          db.createChat(sorted_list_of_users, function(err, data) {  
+            if (err) {
+              console.log("CHAT CREATION FAILED");
+            } else {
+              chat_id = data;
+              res.render('chat.ejs', {message: null, user: req.session.username, otherUser: otherUser, chat_id: chat_id, prevMessages: prevMessages.toString()});
+            }
+          });
+        } else {
+          chat_id = data;
+          console.log("FETCHING THE CHAT WITH ID", chat_id);
+          db.getChatMessages(chat_id, function(err, data) {
+            for (entry of data) {
+              prevMessages.push(entry.creator.S + ": " + entry.message.S);
+            }
+            console.log("PREV HERE ", prevMessages);
+            
+            res.render('chat.ejs', {message: null, user: req.session.username, otherUser: otherUser, chat_id: chat_id, prevMessages: prevMessages.toString()});
+          });
+        }
+    });
     // get prev messages from db
 
-    
 
-    res.render('chat.ejs', {message: null, user: req.session.username, otherUser: otherUser, prevMessages: prevMessages.toString()});
+
+    
  };
 
  var getCreatePost = function(req, res) {
@@ -533,10 +558,27 @@ function time_ago(time) {
   return time;
 }
 
+var addChatMessage = function(req, res) {
+	// get the info from the form
+  var message = req.body.message;
+  var creator = req.body.creator;
+  var chat_id = req.body.chat_id;
+  console.log("HERE IS THE CHAT ID WHEN ADDED", chat_id)
+  var timestamp = req.body.timestamp;
+
+    db.addMessageToChat(message, creator, chat_id, timestamp, function(err, data) {
+      if (!err) {
+      } else {
+        console.log("COULD NOT ADD MESSAGE")
+      }
+    })
+};
+
  var routes = { 
     get_main: getMain,
     post_start_chat: startChat,
     get_enter_chat: getEnterChat,
+    add_chat_message: addChatMessage,
     post_checklogin: logincheck,
     get_signup: getsignup,
     post_createaccount: createAcc,

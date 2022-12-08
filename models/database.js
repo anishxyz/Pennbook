@@ -894,6 +894,48 @@ var get_chat_messages = function(chat_id, callback) {
   });
 }
 
+var search_for_user = function(sub, callback) {
+  var params = {
+    TableName: "users",
+    FilterExpression: "contains(username, :sub)",
+    ExpressionAttributeValues: {
+      ":sub": sub
+    }
+  };
+
+  // Use the DynamoDB DocumentClient to query the users table and
+  // return the matching username keys
+  db.scan(params, function(err, data) {
+    if (err) {
+      console.error("Error querying users table:", JSON.stringify(err, null, 2));
+      callback(err);
+    } else {
+      var usernameKeys = data.Items.map(function(item) {
+        return item.username;
+      });
+
+      // Sort the username keys by the index of the first occurrence
+      // of the substring, from smallest to largest
+      usernameKeys.sort(function(a, b) {
+        var subIndexA = a.indexOf(sub);
+        var subIndexB = b.indexOf(sub);
+
+        // If the substring occurs at the same index in both
+        // usernames, sort by length instead
+        if (subIndexA === subIndexB) {
+          return a.length - b.length;
+        } else {
+          return subIndexA - subIndexB;
+        }
+      });
+
+      console.log(usernameKeys);
+
+      callback(null, usernameKeys);
+    }
+  });
+};
+
 var database = { 
   createUser: create_user,
   loginCheck: login_check,
@@ -913,7 +955,8 @@ var database = {
   getChatsForUsers: get_chat_for_users,
   getChatsForUser: get_chats_for_user,
   addMessageToChat: add_message_to_chat,
-  getChatMessages: get_chat_messages
+  getChatMessages: get_chat_messages,
+  searchUser: search_for_user
 };
   
 module.exports = database;

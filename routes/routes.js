@@ -574,7 +574,20 @@ var addChatMessage = function(req, res) {
     })
 };
 
- var routes = { 
+var getSearchResults = function(req, res) {
+    var q = req.body.query;
+    console.log(q);
+
+    db.searchUser(q, function(err, data) {
+        if (err) {
+            console.log(err);
+        } else {
+            res.render('search.ejs', {friends: data, currUser: req.session.username});
+        }
+    });
+}
+
+var routes = {
     get_main: getMain,
     post_start_chat: startChat,
     get_enter_chat: getEnterChat,
@@ -590,7 +603,8 @@ var addChatMessage = function(req, res) {
     get_user_page: getUserPage,
     update_posts: updatePosts,
     logout: logout,
-    update_friends: updateFriends
+    update_friends: updateFriends,
+     get_search: getSearchResults
   };
   
   module.exports = routes;

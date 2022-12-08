@@ -50,7 +50,8 @@
 
    app.get('/logout', routes.logout);
 
-app.post('/search', routes.get_search);
+  app.get('/search', routes.get_search);
+  app.get('/search2', routes.update_search);
 
    io.on('connection', (socket) => {
     socket.on('chat message', ({msg, sender, recipient}) => {

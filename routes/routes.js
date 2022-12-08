@@ -575,9 +575,7 @@ var addChatMessage = function(req, res) {
 };
 
 var getSearchResults = function(req, res) {
-  console.log("Here 3");
-  console.log(req.body);
-    var q = req.body.query;
+    var q = req.query.query;
     console.log(q);
 
     db.searchUser(q, function(err, data) {
@@ -585,6 +583,20 @@ var getSearchResults = function(req, res) {
             console.log(err);
         } else {
             res.render('search.ejs', {friends: data, currUser: req.session.username});
+        }
+    });
+}
+
+var updateSearchResults = function(req, res) {
+    var q = req.query.query;
+    console.log(q);
+
+    db.searchUser(q, function(err, data) {
+        if (err) {
+            console.log(err);
+            res.send(JSON.stringify([]));
+        } else {
+            res.send(JSON.stringify(data));
         }
     });
 }
@@ -606,7 +618,8 @@ var routes = {
     update_posts: updatePosts,
     logout: logout,
     update_friends: updateFriends,
-     get_search: getSearchResults
+    get_search: getSearchResults,
+    update_search: updateSearchResults
   };
   
   module.exports = routes;

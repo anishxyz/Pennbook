@@ -737,7 +737,7 @@ var create_chat = function(users, callback) {
     requests.push({
       PutRequest: {
         Item: {
-          user: {
+          username: {
             S: user
           },
           chat_id: {
@@ -754,11 +754,13 @@ var create_chat = function(users, callback) {
       users_to_chats: requests
     }
   };
+  console.log("GOT TO HERE 1")
   db.batchWriteItem(params, function(err, data) {
     if (err) {
       console.log(err);
       callback("1", null);
     } else {
+      console.log("GOT TO HERE 2")
       // Next write to userlists_to_chats
       params = {
         Item: {
@@ -783,10 +785,12 @@ var create_chat = function(users, callback) {
   });
 }
 
+
 // Gets chat_id for specified list of users
 var get_chat_for_users = function(users, callback) {
   users.sort();
   usersString = users.join(",");
+  console.log("USERSTRING HERE ", usersString)
   var params = {
     KeyConditions: {
       userlist: {
@@ -802,7 +806,11 @@ var get_chat_for_users = function(users, callback) {
       console.log(err);
       callback("1", null);
     } else {
-      callback(null, data.Items[0].chat_id.S);
+      if (data.Items[0] == null) {
+        callback(null, null);
+      } else {
+        callback(null, data.Items[0].chat_id.S);
+      }
     }
   })
 }

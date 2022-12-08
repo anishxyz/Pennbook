@@ -30,6 +30,8 @@
 
    app.get('/enterchat', routes.get_enter_chat);
    app.post('/chat', routes.post_start_chat);
+   app.post('/addchatmessage', routes.add_chat_message);
+
 
    app.get('/signup', routes.get_signup);
    app.post('/checklogin', routes.post_checklogin);

@@ -895,17 +895,21 @@ var get_chat_messages = function(chat_id, callback) {
 }
 
 var search_for_user = function(sub, callback) {
+  console.log("Here 1");
   var params = {
     TableName: "users",
     FilterExpression: "contains(username, :sub)",
     ExpressionAttributeValues: {
-      ":sub": sub
+      ":sub": {
+        S: sub
+      }
     }
   };
 
   // Use the DynamoDB DocumentClient to query the users table and
   // return the matching username keys
   db.scan(params, function(err, data) {
+    console.log("Here 2");
     if (err) {
       console.error("Error querying users table:", JSON.stringify(err, null, 2));
       callback(err);

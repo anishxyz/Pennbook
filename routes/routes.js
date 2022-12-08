@@ -534,6 +534,8 @@ function time_ago(time) {
 }
 
 var getSearchResults = function(req, res) {
+  console.log("Here 3");
+  console.log(req.body);
     var q = req.body.query;
     console.log(q);
 

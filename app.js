@@ -48,7 +48,7 @@
 
    app.get('/logout', routes.logout);
 
-app.get('/search', routes.get_search);
+app.post('/search', routes.get_search);
 
    io.on('connection', (socket) => {
     socket.on('chat message', ({msg, sender, recipient}) => {

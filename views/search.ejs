@@ -8,41 +8,41 @@
 <body>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script type="text/javascript">
-    var posts = [];
-    var friends = [];
-    window.onload = function() {
-        posts = '<%= posts %>';
-        friends = '<%= friends %>';
-    }
+    // var posts = [];
+    // var friends = [];
+    // window.onload = function() {
+    //     posts = '<%= posts %>';
+    //     friends = '<%= friends %>';
+    // }
 
-    function updatePosts() {
-        $.getJSON('http://localhost:8080/updateposts', function(newPosts) {
-            if (newPosts == null || newPosts.length == 0) {
-                return;
-            }
-            posts = newPosts;
-            $("#post_section").load(location.href + " #post_section>*", "");
-        });
+    // function updatePosts() {
+    //     $.getJSON('http://localhost:8080/updateposts', function(newPosts) {
+    //         if (newPosts == null || newPosts.length == 0) {
+    //             return;
+    //         }
+    //         posts = newPosts;
+    //         $("#post_section").load(location.href + " #post_section>*", "");
+    //     });
 
-        setTimeout(updatePosts, 50000);
-    }
+    //     setTimeout(updatePosts, 50000);
+    // }
 
-    function updateFriends() {
-        $.getJSON('http://localhost:8080/updatefriends', function(newFriends) {
-            if (newFriends == null || newFriends.length == 0) {
-                return;
-            }
-            friends = newFriends;
-            $("#friend_section").load(location.href + " #friend_section>*", "");
-        });
+    // function updateFriends() {
+    //     $.getJSON('http://localhost:8080/updatefriends', function(newFriends) {
+    //         if (newFriends == null || newFriends.length == 0) {
+    //             return;
+    //         }
+    //         friends = newFriends;
+    //         $("#friend_section").load(location.href + " #friend_section>*", "");
+    //     });
 
-        setTimeout(updateFriends, 50000);
-    }
+    //     setTimeout(updateFriends, 50000);
+    // }
 
-    $(document).ready(function() {
-        updatePosts();
-        updateFriends();
-    });
+    // $(document).ready(function() {
+    //     updatePosts();
+    //     updateFriends();
+    // });
 </script>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
@@ -87,12 +87,7 @@
             <ul class="list-group">
                 <%if (friends != null) { %>
                     <% friends.forEach(f => { %>
-                    <%if (f.online.S == "yes") {%>
-                        <li class="list-group-item list-group-item-success"><%- f.username.S -%></li>
-                    <%}%>
-                    <%if (f.online.S == "no") {%>
-                        <li class="list-group-item"><%- f.username.S -%></li>
-                    <%}%>
+                        <li class="list-group-item"><%- f.S -%></li>
                     <% }); %>
                 <% } %>
             </ul>

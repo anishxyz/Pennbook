@@ -601,6 +601,64 @@ var updateSearchResults = function(req, res) {
     });
 }
 
+var getVisualizer = function(req, res) {
+  db.getFriends(req.session.username, function(err, data) {
+    if (err) {
+      console.log(err);
+      res.redirect('/home');
+    } else {
+      db.getUserInfo(req.session.username, function(err, data2) {
+        if (err) {
+          console.log(err);
+          res.redirect('/home');
+        } else {
+          res.render('visualizer.ejs', {currUser: req.session.username, friends: data, affiliation: data2.affiliation.S});
+        }
+      });
+    }
+  });
+}
+
+var updateVisualizer = function(req, res) {
+  affiliation = req.query.affiliation;
+  user = req.query.username;
+  console.log(affiliation);
+  console.log(user);
+  db.getUserInfo(user, function(err, data) {
+    if (err) {
+      console.log(err);
+      res.send(JSON.stringify([]));
+    } else {
+      if (data.affiliation.S != affiliation) {
+        res.send(JSON.stringify([]));
+      } else {
+        db.getFriends(user, function(err, data2) {
+          if (err) {
+            console.log(err);
+            res.send(JSON.stringify([]));
+          } else {
+            db.getUsersAffiliation(data2, function(err, data3) {
+              if (err) {
+                console.log(err);
+                res.send(JSON.stringify([]));
+              } else {
+                friends = [];
+                for (friend of data3) {
+                  if (friend.affiliation.S == affiliation) {
+                    friends.push(friend.username.S);
+                  }
+                }
+                console.log(friends);
+                res.send(JSON.stringify(friends));
+              }
+            });
+          }
+        })
+      }
+    }
+  })
+}
+
 var routes = {
     get_main: getMain,
     post_start_chat: startChat,
@@ -619,7 +677,9 @@ var routes = {
     logout: logout,
     update_friends: updateFriends,
     get_search: getSearchResults,
-    update_search: updateSearchResults
+    update_search: updateSearchResults,
+    get_visualizer: getVisualizer,
+    update_visualizer: updateVisualizer
   };
   
   module.exports = routes;

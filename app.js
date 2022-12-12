@@ -53,6 +53,9 @@
   app.get('/search', routes.get_search);
   app.get('/search2', routes.update_search);
 
+  app.get('/visualizer', routes.get_visualizer);
+  app.get('/updatevisualizer', routes.update_visualizer);
+
    io.on('connection', (socket) => {
     socket.on('chat message', ({msg, sender, recipient}) => {
       console.log("RECIPIENT IN APP.JS " + recipient);

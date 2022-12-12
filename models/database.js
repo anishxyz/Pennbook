@@ -341,6 +341,42 @@ var get_users_status = function(users, callback) {
     });
 }
 
+var get_users_affiliation = function(users, callback) {
+  if (users == null || users.length == 0) {
+    callback(null, []);
+    return;
+  }
+  queries = [];
+  for (username of users) {
+    queries.push({
+      username: {
+        S: username
+      }
+    });
+  }
+    console.log(queries);
+    var params = {
+      RequestItems: {
+        users: {
+          Keys: queries,
+          ExpressionAttributeNames: {
+            "#u": "username",
+            "#a": "affiliation"
+          },
+          ProjectionExpression: "#u, #a"
+        }
+      }
+    };
+    db.batchGetItem(params, function(err, data) {
+      if (err) {
+        console.log(err);
+        callback("1", null);
+      } else {
+        callback(null, data.Responses.users);
+      }
+    });
+}
+
 // Error 1 means issue while querying
 var get_posts_for_user = function(username, callback) {
   var params = {
@@ -960,7 +996,8 @@ var database = {
   getChatsForUser: get_chats_for_user,
   addMessageToChat: add_message_to_chat,
   getChatMessages: get_chat_messages,
-  searchUser: search_for_user
+  searchUser: search_for_user,
+  getUsersAffiliation: get_users_affiliation
 };
   
 module.exports = database;

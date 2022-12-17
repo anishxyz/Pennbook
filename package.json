@@ -14,6 +14,7 @@
       "express": "*",
       "express-session": "^1.17.3",
       "http": "0.0.1-security",
+      "jquery-ui": "^1.13.2",
       "lru-cache": "*",
       "mdb-ui-kit": "^6.0.1",
       "socket.io": "^4.5.4",

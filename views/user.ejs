@@ -68,7 +68,7 @@
 <!--            </ul>-->
 <!--        </div>-->
         <div class="col-md-9">
-            <h3><%u%>'s Posts</h3>
+            <h3><%- u -%>'s Posts</h3>
             <%if (myposts != null) { %>
                 <% myposts.forEach(p => { %>
                 <%if (p.type.S == "post") {%>
@@ -78,7 +78,7 @@
                             <p class="card-text"><%- p.content.S -%></p>
                         </div>
                         <div class="card-footer">
-                            <small class="text-muted"><%- p.timestamp.N -%></small>
+                            <small class="text-muted"><%- p.time_ago -%></small>
                         </div>
                     </div>
                 <%}%>
@@ -89,7 +89,7 @@
                             <p class="card-text"><%- p.content.S -%></p>
                         </div>
                         <div class="card-footer">
-                            <small class="text-white"><%- p.timestamp.N -%></small>
+                            <small class="text-white"><%- p.time_ago -%></small>
                         </div>
                     </div>
                 <%}%>
@@ -100,7 +100,7 @@
                             <p class="card-text"><%- p.content.S -%></p>
                         </div>
                         <div class="card-footer">
-                            <small class="text-white"><%- p.timestamp.N -%></small>
+                            <small class="text-white"><%- p.time_ago -%></small>
                         </div>
                     </div>
                 <%}%>

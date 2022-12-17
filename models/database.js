@@ -976,6 +976,9 @@ var search_for_user = function(sub, callback) {
   });
 };
 
+
+
+
 var database = { 
   createUser: create_user,
   loginCheck: login_check,

@@ -54,21 +54,21 @@
 </nav>
 <div class="container" style="padding: 25px 0;">
     <div class="row">
-        <div class="col-md-3">
-            <h3>Friends</h3>
-            <ul class="list-group">
-                <%if (friends != null) { %>
-                    <% friends.forEach(f => { %>
-                        <li class="list-group-item"><% f %></li>
-                    <% }); %>
-                <% } %>
-                <li class="list-group-item">Johnny</li>
-                <li class="list-group-item">Harry</li>
-                <li class="list-group-item">David</li>
-            </ul>
-        </div>
+<!--        <div class="col-md-3">-->
+<!--            <h3>Friends</h3>-->
+<!--            <ul class="list-group">-->
+<!--                <%if (friends != null) { %>-->
+<!--                    <% friends.forEach(f => { %>-->
+<!--                        <li class="list-group-item"><% f %></li>-->
+<!--                    <% }); %>-->
+<!--                <% } %>-->
+<!--                <li class="list-group-item">Johnny</li>-->
+<!--                <li class="list-group-item">Harry</li>-->
+<!--                <li class="list-group-item">David</li>-->
+<!--            </ul>-->
+<!--        </div>-->
         <div class="col-md-9">
-            <h3>My Posts</h3>
+            <h3><%u%>'s Posts</h3>
             <%if (myposts != null) { %>
                 <% myposts.forEach(p => { %>
                 <%if (p.type.S == "post") {%>

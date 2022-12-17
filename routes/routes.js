@@ -309,7 +309,14 @@ var saveAccChanges= async function(req, res) {
             res.redirect('signup.ejs');
             return;
         }
-        db.getPostsForUser(req.session.username, function(err, data) {
+
+        var u = req.session.username;
+
+        if (req.query.friend) {
+            u = req.query.friend;
+        }
+
+        db.getPostsForUser(u, function(err, data) {
             if (err) {
                 res.redirect('home.ejs');
             } else {
@@ -318,7 +325,7 @@ var saveAccChanges= async function(req, res) {
                         console.log(err);
                         res.redirect('home.ejs');
                     } else {
-                        db.getFriends(req.session.username, function(err, dataf) {
+                        db.getFriends(u, function(err, dataf) {
                           if (err) {
                             console.log(err);
                             res.redirect('home.ejs');
@@ -332,7 +339,7 @@ var saveAccChanges= async function(req, res) {
                                   post.time_ago = time_ago(parseInt(post.timestamp.N));
                                 }
                                 console.log(dataf2);
-                                res.render('user.ejs', {myposts: data, friends: dataf2, currUser: req.session.username});
+                                res.render('user.ejs', {myposts: data, friends: dataf2, u:u, currUser: req.session.username});
                               }
                             });
                           }

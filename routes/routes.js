@@ -338,7 +338,7 @@ var saveAccChanges= async function(req, res) {
                                 for (post of data) {
                                   post.time_ago = time_ago(parseInt(post.timestamp.N));
                                 }
-                                console.log(dataf2);
+                                console.log(data);
                                 res.render('user.ejs', {myposts: data, friends: dataf2, u:u, currUser: req.session.username});
                               }
                             });

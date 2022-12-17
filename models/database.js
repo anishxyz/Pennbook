@@ -951,8 +951,10 @@ var search_for_user = function(sub, callback) {
       callback(err);
     } else {
       var usernameKeys = data.Items.map(function(item) {
-        return item.username;
+        return item.username.S;
       });
+
+      console.log(usernameKeys);
 
       // Sort the username keys by the index of the first occurrence
       // of the substring, from smallest to largest

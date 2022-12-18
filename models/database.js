@@ -735,7 +735,7 @@ var add_comment = function(creator, post_id, timestamp, content, callback) {
     TableName: "posts_to_comments"
   };
 
-  db.addItem(params, function(err, data) {
+  db.putItem(params, function(err, data) {
     if (err) {
       console.log(err);
       callback("1", null);

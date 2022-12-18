@@ -188,9 +188,9 @@
         }
 
         function getComments(postId, creator, content, time) {
-            document.getElementById('offposter').value = "Post by " + creator;
-            document.getElementById('offcontent').value = content;
-            document.getElementById('offtime').value = time;
+            document.getElementById('offposter').textContent = "Post by " + creator;
+            document.getElementById('offcontent').textContent = content;
+            document.getElementById('offtime').textContent = time;
 
             console.log(postId);
             console.log(creator);

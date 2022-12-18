@@ -209,7 +209,7 @@
                 console.log("request made");
             });
 
-            console.log(comment);
+            console.log(currUser + ": " + comment);
             console.log("adding comment");
         }
     </script>
@@ -301,7 +301,7 @@
                                     <small class="text-muted"><%- p.time_ago -%></small>
                                     <form class="form-inline">
                                         <div class="form-group">
-                                            <input type="email" class="form-control" id="comment" aria-describedby="emailHelp" placeholder="Add Comment">
+                                            <input type="text" class="form-control" id="comment" placeholder="Add Comment">
                                         </div>
                                         <button type="submit" class="btn btn-primary" onclick="addComment(p.post_id.S)">+</button>
                                     </form>

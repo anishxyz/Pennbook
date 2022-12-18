@@ -231,12 +231,12 @@
                     <% friends.forEach(f => { %>
                         <%if (f.online.S == "yes") {%>
                             <li class="list-group-item list-group-item-success">
-                                <a class = "activeUserLink" href="/user?friend=<%- f.username.S -%>"><%- f.username.S -%></a>
+                                <a class="activeUserLink" href="/user?friend=<%- f.username.S -%>"><%- f.username.S -%></a>
                             </li>
                         <%}%>
                         <%if (f.online.S == "no") {%>
                             <li class="list-group-item">
-                                <a class = "activeUserLink" href="/user?friend=<%- f.username.S -%>"><%- f.username.S -%></a>
+                                <a class="activeUserLink" href="/user?friend=<%- f.username.S -%>"><%- f.username.S -%></a>
                             </li>
 
                         <%}%>

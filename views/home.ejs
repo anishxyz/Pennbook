@@ -193,6 +193,9 @@
             document.getElementById('offtime').value = time;
 
             console.log(postId);
+            console.log(creator);
+            console.log(content);
+            console.log(time);
             console.log("loading comments");
         }
 
@@ -298,12 +301,12 @@
 <!--                            Post Left Bar-->
                             <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
                                 <div class="offcanvas-header">
-                                    <h5 class="offcanvas-title" id="offposter"></h5>
+                                    <h5 class="offcanvas-title" id="offposter">post</h5>
                                     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                                 </div>
                                 <div class="offcanvas-body">
-                                    <div id="offcontent"></div>
-                                    <small class="text-muted" id="offtime"></small>
+                                    <div id="offcontent">cont</div>
+                                    <small class="text-muted" id="offtime">time</small>
                                     <form class="form-inline">
                                         <div class="form-group">
                                             <input type="text" class="form-control" id="comment" placeholder="Add Comment">

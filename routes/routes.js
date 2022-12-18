@@ -676,6 +676,9 @@ var addComment = function(req, res) {
     }
 }
 
+var getComments = function(req, res) {
+}
+
 var routes = {
     get_main: getMain,
     post_start_chat: startChat,
@@ -697,7 +700,7 @@ var routes = {
     update_search: updateSearchResults,
     get_visualizer: getVisualizer,
     update_visualizer: updateVisualizer,
-    get_post_comments: getComments,
+    get_comments: getComments,
     add_comment: addComment
   };
   

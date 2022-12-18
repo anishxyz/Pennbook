@@ -53,7 +53,7 @@
   app.get('/search', routes.get_search);
   app.get('/search2', routes.update_search);
 
-app.get('/getcomments', routes.get_post_comments);
+app.get('/getcomments', routes.get_comments);
 app.post('/addcomment', routes.add_comment);
 
   app.get('/visualizer', routes.get_visualizer);

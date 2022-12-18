@@ -182,14 +182,35 @@
             }
         }
 
+        document.addEventListener("click", function(e) {
+            closeAllLists(e.target);
+        });
+        }
+
         function getComments(postId) {
             console.log(postId);
             console.log("loading comments");
         }
 
-        document.addEventListener("click", function(e) {
-            closeAllLists(e.target);
-        });
+        function addComment(postId) {
+            var comment = document.getElementById('comment').value;
+            console.log(comment);
+
+            $(document).ready(() => {
+                $.ajax({
+                    url: "/addcomment",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({
+                        id: postId,
+                        cont: comment,
+                    }),
+                });
+                console.log("request made");
+            });
+
+            console.log(comment);
+            console.log("adding comment");
         }
     </script>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -280,20 +301,10 @@
                                     <small class="text-muted"><%- p.time_ago -%></small>
                                     <form class="form-inline">
                                         <div class="form-group">
-                                            <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Add Comment">
+                                            <input type="email" class="form-control" id="comment" aria-describedby="emailHelp" placeholder="Add Comment">
                                         </div>
-                                        <button type="submit" class="btn btn-primary">+</button>
+                                        <button type="submit" class="btn btn-primary" onclick="addComment(p.post_id.S)">+</button>
                                     </form>
-                                    <div class="dropdown mt-3">
-                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown">
-                                            Dropdown button
-                                        </button>
-                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                            <li><a class="dropdown-item" href="#">Action</a></li>
-                                            <li><a class="dropdown-item" href="#">Another action</a></li>
-                                            <li><a class="dropdown-item" href="#">Something else here</a></li>
-                                        </ul>
-                                    </div>
                                 </div>
                             </div>
 

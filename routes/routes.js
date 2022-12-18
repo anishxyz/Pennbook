@@ -663,6 +663,19 @@ var updateVisualizer = function(req, res) {
   })
 }
 
+var addComment = function(req, res) {
+    if (req.session.username == null) {
+        res.redirect('/');
+    } else {
+        db.addComment(req.session.username, req.body.id, Date.now(), req.body.cont, function(err, data) {
+            if (err) {
+                console.log(err);
+                res.redirect('/home');
+            }
+        });
+    }
+}
+
 var routes = {
     get_main: getMain,
     post_start_chat: startChat,
@@ -683,7 +696,9 @@ var routes = {
     get_search: getSearchResults,
     update_search: updateSearchResults,
     get_visualizer: getVisualizer,
-    update_visualizer: updateVisualizer
+    update_visualizer: updateVisualizer,
+    get_comments: getComments,
+    add_comment: addComment
   };
   
   module.exports = routes;

@@ -697,7 +697,7 @@ var routes = {
     update_search: updateSearchResults,
     get_visualizer: getVisualizer,
     update_visualizer: updateVisualizer,
-    get_comments: getComments,
+    get_post_comments: getComments,
     add_comment: addComment
   };
   

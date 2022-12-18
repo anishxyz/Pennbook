@@ -231,12 +231,12 @@
                     <% friends.forEach(f => { %>
                         <%if (f.online.S == "yes") {%>
                             <li class="list-group-item list-group-item-success">
-                                <a class = "activeUserLink" href="/user?friend=<%- f.username.S -%>"><%- f.username.S -%></a>
+                                <a class="activeUserLink" href="/user?friend=<%- f.username.S -%>"><%- f.username.S -%></a>
                             </li>
                         <%}%>
                         <%if (f.online.S == "no") {%>
                             <li class="list-group-item">
-                                <a class = "activeUserLink" href="/user?friend=<%- f.username.S -%>"><%- f.username.S -%></a>
+                                <a class="activeUserLink" href="/user?friend=<%- f.username.S -%>"><%- f.username.S -%></a>
                             </li>
 
                         <%}%>
@@ -255,6 +255,34 @@
                                 <a href="/user?friend=<%- p.creator.S -%>"><%- p.creator.S -%></a>
                             </h5>
                             <p class="card-text"><%- p.content.S -%></p>
+                            <a class="btn btn-primary" data-bs-toggle="offcanvas" href="#offcanvasExample" role="button" aria-controls="offcanvasExample">
+                                Link with href
+                            </a>
+                            <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample">
+                                Button with data-bs-target
+                            </button>
+
+                            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+                                <div class="offcanvas-header">
+                                    <h5 class="offcanvas-title" id="offcanvasExampleLabel">Offcanvas</h5>
+                                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                                </div>
+                                <div class="offcanvas-body">
+                                    <div>
+                                        Some text as placeholder. In real life you can have the elements you have chosen. Like, text, images, lists, etc.
+                                    </div>
+                                    <div class="dropdown mt-3">
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown">
+                                            Dropdown button
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                            <li><a class="dropdown-item" href="#">Action</a></li>
+                                            <li><a class="dropdown-item" href="#">Another action</a></li>
+                                            <li><a class="dropdown-item" href="#">Something else here</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="card-footer">
                             <small class="text-muted"><%- p.time_ago -%></small>

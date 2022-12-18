@@ -187,7 +187,12 @@
         });
         }
 
-        function getComments(postId) {
+        function getComments(postId, creator, content, time) {
+            // getComments('<%- p.post_id.S -%>', '<%- p.creator.S -%>', '<%- p.content.S -%>', '<%- p.time_ago -%>')
+            document.getElementById('offposter').value = "Post by " + creator;
+            document.getElementById('offcontent').value = content;
+            document.getElementById('offtime').value = time;
+
             console.log(postId);
             console.log("loading comments");
         }
@@ -287,18 +292,19 @@
                                 <a href="/user?friend=<%- p.creator.S -%>"><%- p.creator.S -%></a>
                             </h5>
                             <p class="card-text"><%- p.content.S -%></p>
-                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample" onclick="getComments('<%- p.post_id.S -%>')">
+                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample"
+                                    onclick="getComments('<%- p.post_id.S -%>', '<%- p.creator.S -%>', '<%- p.content.S -%>', '<%- p.time_ago -%>')">
                                 Open
                             </button>
 <!--                            Post Left Bar-->
                             <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
                                 <div class="offcanvas-header">
-                                    <h5 class="offcanvas-title" id="offcanvasExampleLabel">Post by <%- p.creator.S -%></h5>
+                                    <h5 class="offcanvas-title" id="offposter"></h5>
                                     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                                 </div>
                                 <div class="offcanvas-body">
-                                    <div><%- p.content.S -%></div>
-                                    <small class="text-muted"><%- p.time_ago -%></small>
+                                    <div id="offcontent"></div>
+                                    <small class="text-muted" id="offtime"></small>
                                     <form class="form-inline">
                                         <div class="form-group">
                                             <input type="text" class="form-control" id="comment" placeholder="Add Comment">

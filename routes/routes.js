@@ -545,9 +545,6 @@ function time_ago(time) {
     token = 'ago',
     list_choice = 1;
 
-  if (seconds < 60) {
-    return 'Just now'
-  }
   if (seconds < 0) {
     seconds = Math.abs(seconds);
     token = 'from now';

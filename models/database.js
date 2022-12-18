@@ -336,7 +336,21 @@ var get_users_status = function(users, callback) {
         console.log(err);
         callback("1", null);
       } else {
-        callback(null, data.Responses.users);
+        arr = data.Responses.users;
+        arr.sort(function(a, b) {
+          if (a.online.S == "yes" && b.online.S == "no") {
+            return -1;
+          } else if (a.online.S == "no" && b.online.S == "yes") {
+            return 1;
+          } else {
+            if (a.username.S > b.username.S) {
+              return 1;
+            } else {
+              return -1;
+            }
+          }
+        })
+        callback(null, arr);
       }
     });
 }
@@ -700,23 +714,13 @@ var add_posts = function(posts, creator, callback) {
 }
 
 // Error 1 means issue while writing to database
-// Returns comment_id as data
 var add_comment = function(creator, post_id, timestamp, content, callback) {
-  console.log("Creating new comment with content:");
-  console.log("Creator: " + creator);
-  console.log("Post: " + post_id);
-  console.log("Content: " + content);
-
-  id = uuidv4();
-  
-  // Convert timestamp to a string
   timestamp = timestamp.toString();
 
-  // First write to comments
   var params = {
     Item: {
-      comment_id: {
-        S: id
+      post_id: {
+        S: post_id
       },
       creator: {
         S: creator
@@ -727,40 +731,40 @@ var add_comment = function(creator, post_id, timestamp, content, callback) {
       timestamp: {
         N: timestamp
       },
-      post_id: {
-        S: post_id
-      }
     },
-    TableName: "comments"
+    TableName: "posts_to_comments"
   };
 
-  db.putItem(params, function(err, data) {
+  db.addItem(params, function(err, data) {
     if (err) {
       console.log(err);
       callback("1", null);
     } else {
-      // Next write to posts_to_comments
-      params = {
-        Item: {
-          post_id: {
-            S: post_id
-          },
-          comment_id: {
-            S: id
-          }
-        },
-        TableName: "posts_to_comments"
-      };
-      db.putItem(params, function(err, data) {
-        if (err) {
-          console.log(err);
-          callback("1", null);
-        } else {
-          callback(null, id);
-        }
-      });
+      callback(null, "Success");
     }
   });
+}
+
+// Error 1 means issue while querying database
+var get_comments_for_post = function(post_id, callback) {
+  var params = {
+    KeyConditions: {
+      post_id: {
+        ComparisonOperator: 'EQ',
+        AttributeValueList: [ { S: post_id } ]
+      }
+    },
+    TableName: "posts_to_comments"
+  };
+
+  db.query(params, function(err, data) {
+    if (err) {
+      console.log(err);
+      callback("1", null);
+    } else {
+      callback(null, data.Items);
+    }
+  })
 }
 
 // Creates a new chat
@@ -1002,7 +1006,8 @@ var database = {
   addMessageToChat: add_message_to_chat,
   getChatMessages: get_chat_messages,
   searchUser: search_for_user,
-  getUsersAffiliation: get_users_affiliation
+  getUsersAffiliation: get_users_affiliation,
+  getCommentsForPost: get_comments_for_post
 };
   
 module.exports = database;

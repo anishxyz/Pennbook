@@ -73,7 +73,7 @@
                 $("#post_section").load(location.href + " #post_section>*", "");
             });
 
-            setTimeout(updatePosts, 50000);
+            setTimeout(updatePosts, 20000);
         }
 
         function updateFriends() {
@@ -85,7 +85,7 @@
                 $("#friend_section").load(location.href + " #friend_section>*", "");
             });
 
-            setTimeout(updateFriends, 50000);
+            setTimeout(updateFriends, 20000);
         }
 
         $(document).ready(function() {
@@ -110,7 +110,7 @@
                     $.getJSON("/search2?query=" + val, function(results) {
                         for (result of results) {
                             b = document.createElement("DIV");
-                            b.innerHTML = "<strong>" + result + "</strong>";
+                            b.innerHTML = result;
                             b.innerHTML += "<input type='hidden' value='" + result + "'>";
                             b.addEventListener("click", function(e) {
                                 inp.value = this.getElementsByTagName("input")[0].value;

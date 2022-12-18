@@ -667,7 +667,6 @@ var addComment = function(req, res) {
     if (req.session.username == null) {
         res.redirect('/');
     } else {
-
         console.log("adding comment to db");
         console.log(req.body.cont);
         console.log(req.body.id);

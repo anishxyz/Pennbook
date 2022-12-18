@@ -287,7 +287,7 @@
                                 <a href="/user?friend=<%- p.creator.S -%>"><%- p.creator.S -%></a>
                             </h5>
                             <p class="card-text"><%- p.content.S -%></p>
-                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample" onclick="getComments(<%- p.post_id.S -%>)">
+                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample" onclick="getComments('<%- p.post_id.S -%>')">
                                 Open
                             </button>
 <!--                            Post Left Bar-->
@@ -303,7 +303,7 @@
                                         <div class="form-group">
                                             <input type="text" class="form-control" id="comment" placeholder="Add Comment">
                                         </div>
-                                        <button type="submit" class="btn btn-primary" onclick="addComment(<%- p.post_id.S -%>)">+</button>
+                                        <button type="submit" class="btn btn-primary" onclick="addComment('<%- p.post_id.S -%>')">+</button>
                                     </form>
                                 </div>
                             </div>

@@ -665,6 +665,7 @@ var updateVisualizer = function(req, res) {
 
 var addComment = function(req, res) {
     if (req.session.username == null) {
+        console.log("here");
         res.redirect('/');
     } else {
         console.log("adding comment to db");

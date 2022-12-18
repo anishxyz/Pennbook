@@ -673,6 +673,7 @@ var addComment = function(req, res) {
         console.log(req.body.id);
         db.addComment(req.session.username, req.body.id, Date.now(), req.body.cont, function(err, data) {
             if (err) {
+                console.log("here2");
                 console.log(err);
                 res.redirect('/home');
             }

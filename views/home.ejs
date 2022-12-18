@@ -181,6 +181,11 @@
             }
         }
 
+        function getComments(postId) {
+            console.log(postId);
+            console.log("loading comments");
+        }
+
         document.addEventListener("click", function(e) {
             closeAllLists(e.target);
         });
@@ -257,21 +262,21 @@
                     <div class="card mb-3 bg-light">
                         <div class="card-body">
                             <h5 class="card-title">
-                                <a href="/user?friend=<%- p.creator.S -%>"><%- p.creator.S -%><%- p.post_id.S -%></a>
+                                <a href="/user?friend=<%- p.creator.S -%>"><%- p.creator.S -%></a>
                             </h5>
                             <p class="card-text"><%- p.content.S -%></p>
-                            <a class="btn btn-outline-secondary" data-bs-toggle="offcanvas" href="#offcanvasExample" role="button" aria-controls="offcanvasExample">
+                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample" onclick="getComments(p.post_id.S)">
                                 Open
-                            </a>
+                            </button>
+<!--                            Post Left Bar-->
                             <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
                                 <div class="offcanvas-header">
-                                    <h5 class="offcanvas-title" id="offcanvasExampleLabel">Offcanvas</h5>
+                                    <h5 class="offcanvas-title" id="offcanvasExampleLabel">Post by <%- p.creator.S -%></h5>
                                     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                                 </div>
                                 <div class="offcanvas-body">
-                                    <div>
-                                        Some text as placeholder. In real life you can have the elements you have chosen. Like, text, images, lists, etc.
-                                    </div>
+                                    <div><%- p.content.S -%></div>
+                                    <small class="text-muted"><%- p.time_ago -%></small>
                                     <div class="dropdown mt-3">
                                         <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown">
                                             Dropdown button
@@ -284,6 +289,7 @@
                                     </div>
                                 </div>
                             </div>
+
                         </div>
                         <div class="card-footer">
                             <small class="text-muted"><%- p.time_ago -%></small>

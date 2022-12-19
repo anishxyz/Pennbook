@@ -292,8 +292,13 @@ var get_posts_for_user_friends = function(username, callback) {
           callback("2", null);
         } else {
           posts = [];
+          postsSet = new Set();
           for (user_posts of data.Responses.users_to_posts) {
             for (post_id of user_posts.posts.SS) {
+              if (postsSet.has(post_id)) {
+                continue;
+              }
+              postsSet.add(post_id);
               posts.push(post_id);
             }
           }
@@ -414,8 +419,13 @@ var get_posts_for_user = function(username, callback) {
         callback(null, []);
       } else {
         posts = [];
-        for (post of data.Items[0].posts.SS) {
-          posts.push(post);
+        postsSet = new Set();
+        for (post_id of data.Items[0].posts.SS) {
+          if (postsSet.has(post_id)) {
+            continue;
+          }
+          postsSet.add(post_id);
+          posts.push(post_id);
         }
         console.log(posts);
         callback(null, posts);
@@ -522,6 +532,54 @@ var login_check = function(username, password, callback) {
             }
         }
     });
+}
+
+var add_post_to_user = function(username, post_id, callback) {
+  // First get original posts set
+  params = {
+    KeyConditions: {
+      username: {
+        ComparisonOperator: 'EQ',
+        AttributeValueList: [ { S: username } ]
+      }
+    },
+    TableName: "users_to_posts",
+    AttributesToGet: ["posts"]
+  };
+  db.query(params, function(err, data) {
+    if (err) {
+      console.log(err);
+      callback("1", null);
+    } else {
+      if (data.Items.length == 0) {
+        newPosts = [];
+      } else {
+        newPosts = data.Items[0].posts.SS;
+      }
+      newPosts.push(post_id);
+
+      // Update posts table
+      params = {
+        Item: {
+          username: {
+            S: username
+          },
+          posts: {
+            SS: newPosts
+          }
+        },
+        TableName: "users_to_posts"
+      }
+      db.putItem(params, function(err, data) {
+        if (err) {
+          console.log(err);
+          callback("1", null);
+        } else {
+          callback(null, id);
+        }
+      })
+    }
+  });
 }
 
 // Error 1 means issue while adding to database
@@ -762,7 +820,15 @@ var get_comments_for_post = function(post_id, callback) {
       console.log(err);
       callback("1", null);
     } else {
-      callback(null, data.Items);
+      comments = data.Items;
+      comments.sort(function(a, b) {
+        if (a.timestamp.N > b.timestamp.N) {
+          return -1;
+        } else {
+          return 1;
+        }
+      });
+      callback(null, comments);
     }
   })
 }
@@ -1007,7 +1073,8 @@ var database = {
   getChatMessages: get_chat_messages,
   searchUser: search_for_user,
   getUsersAffiliation: get_users_affiliation,
-  getCommentsForPost: get_comments_for_post
+  getCommentsForPost: get_comments_for_post,
+  addPostToUser: add_post_to_user
 };
   
 module.exports = database;

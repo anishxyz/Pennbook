@@ -495,6 +495,13 @@ var get_posts = function(post_id_list, callback) {
           return 1;
         }
       });
+      
+      for (item of res) {
+        if (item.content.S.includes("posted on")) {
+          item.creator.S = item.content.S.split(" ")[0];
+        }
+      }
+
       callback(null, res);
     }
   });

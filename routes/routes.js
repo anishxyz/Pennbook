@@ -330,7 +330,7 @@ var saveAccChanges= async function(req, res) {
                             console.log(err);
                             res.redirect('home.ejs');
                           } else {
-                            db.getUsersStatus(dataf, function(err, dataf2) {
+                            db.getUserInfo(u, function(err, dataUser) {
                               if (err) {
                                 console.log(err);
                                 res.redirect('home.ejs');
@@ -339,7 +339,7 @@ var saveAccChanges= async function(req, res) {
                                   post.time_ago = time_ago(parseInt(post.timestamp.N));
                                 }
                                 console.log(data);
-                                res.render('user.ejs', {myposts: data, friends: dataf2, u:u, currUser: req.session.username});
+                                res.render('user.ejs', {myposts: data, friends: dataf, u:u, currUser: req.session.username, currUserInfo: dataUser});
                               }
                             });
                           }
@@ -488,6 +488,28 @@ var updatePosts = function(req, res) {
       });
     }
   });
+}
+
+// Route to write on someone else's wall
+var writeOnWall = function(req, res) {
+  writer = req.session.username;
+  other = req.query.username;
+  text = writer + " posted on " + other + " wall:<br>" + req.body.text;
+  db.addPost(writer, "post", text, Date.now(), function(err, data) {
+    if (err) {
+      console.log(err);
+      res.redirect('/user?friend=' + other);
+    } else {
+      db.addPostToUser(other, data, function(err, data2) {
+        if (err) {
+          console.log(err);
+          res.redirect('/user?friend=' + other);
+        } else {
+          res.redirect('/user?friend=' + other);
+        }
+      })
+    }
+  })
 }
 
 // AJAX server side code to get online statuses for users
@@ -706,7 +728,8 @@ var routes = {
     get_visualizer: getVisualizer,
     update_visualizer: updateVisualizer,
     get_comments: getComments,
-    add_comment: addComment
+    add_comment: addComment,
+    write_on_wall: writeOnWall
   };
   
   module.exports = routes;

@@ -67,6 +67,25 @@
 <!--                <li class="list-group-item">David</li>-->
 <!--            </ul>-->
 <!--        </div>-->
+            <div class="col-md-3">
+                <%if (currUser != u) { %>
+                <form method="post" action="/writeonwall?username=<%- u -%>">
+                    <h4> Post on <%- u -%>'s wall</h2>
+                    <input type="text" name="text" size="20" class="form-control" placeholder="Post Text">
+                    <input type="submit" name="submit" value="+" class="btn btn-lg btn-primary btn-block">
+                </form>
+                <%}%>
+                <br>
+                <h4><%- u -%>'s Info</h4>
+                <strong>Birthday: </strong> <%- currUserInfo.birthday.S -%>
+                <br>
+                <strong>Affiliation: </strong> <%- currUserInfo.affiliation.S -%>
+                <br>
+                <strong>Interests: </strong>
+                <% currUserInfo.interests.SS.forEach(interest => { %>
+                    <span class="badge rounded-pill bg-primary"><%- interest -%></span>
+                <%})%>
+            </div>
         <div class="col-md-9">
             <h3><%- u -%>'s Posts</h3>
             <%if (myposts != null) { %>

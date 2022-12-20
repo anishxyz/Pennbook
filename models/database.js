@@ -292,8 +292,13 @@ var get_posts_for_user_friends = function(username, callback) {
           callback("2", null);
         } else {
           posts = [];
+          postsSet = new Set();
           for (user_posts of data.Responses.users_to_posts) {
             for (post_id of user_posts.posts.SS) {
+              if (postsSet.has(post_id)) {
+                continue;
+              }
+              postsSet.add(post_id);
               posts.push(post_id);
             }
           }
@@ -336,6 +341,56 @@ var get_users_status = function(users, callback) {
         console.log(err);
         callback("1", null);
       } else {
+        arr = data.Responses.users;
+        arr.sort(function(a, b) {
+          if (a.online.S == "yes" && b.online.S == "no") {
+            return -1;
+          } else if (a.online.S == "no" && b.online.S == "yes") {
+            return 1;
+          } else {
+            if (a.username.S > b.username.S) {
+              return 1;
+            } else {
+              return -1;
+            }
+          }
+        })
+        callback(null, arr);
+      }
+    });
+}
+
+var get_users_affiliation = function(users, callback) {
+  if (users == null || users.length == 0) {
+    callback(null, []);
+    return;
+  }
+  queries = [];
+  for (username of users) {
+    queries.push({
+      username: {
+        S: username
+      }
+    });
+  }
+    console.log(queries);
+    var params = {
+      RequestItems: {
+        users: {
+          Keys: queries,
+          ExpressionAttributeNames: {
+            "#u": "username",
+            "#a": "affiliation"
+          },
+          ProjectionExpression: "#u, #a"
+        }
+      }
+    };
+    db.batchGetItem(params, function(err, data) {
+      if (err) {
+        console.log(err);
+        callback("1", null);
+      } else {
         callback(null, data.Responses.users);
       }
     });
@@ -364,8 +419,13 @@ var get_posts_for_user = function(username, callback) {
         callback(null, []);
       } else {
         posts = [];
-        for (post of data.Items[0].posts.SS) {
-          posts.push(post);
+        postsSet = new Set();
+        for (post_id of data.Items[0].posts.SS) {
+          if (postsSet.has(post_id)) {
+            continue;
+          }
+          postsSet.add(post_id);
+          posts.push(post_id);
         }
         console.log(posts);
         callback(null, posts);
@@ -435,6 +495,13 @@ var get_posts = function(post_id_list, callback) {
           return 1;
         }
       });
+      
+      for (item of res) {
+        if (item.content.S.includes("posted on")) {
+          item.creator.S = item.content.S.split(" ")[0];
+        }
+      }
+
       callback(null, res);
     }
   });
@@ -472,6 +539,54 @@ var login_check = function(username, password, callback) {
             }
         }
     });
+}
+
+var add_post_to_user = function(username, post_id, callback) {
+  // First get original posts set
+  params = {
+    KeyConditions: {
+      username: {
+        ComparisonOperator: 'EQ',
+        AttributeValueList: [ { S: username } ]
+      }
+    },
+    TableName: "users_to_posts",
+    AttributesToGet: ["posts"]
+  };
+  db.query(params, function(err, data) {
+    if (err) {
+      console.log(err);
+      callback("1", null);
+    } else {
+      if (data.Items.length == 0) {
+        newPosts = [];
+      } else {
+        newPosts = data.Items[0].posts.SS;
+      }
+      newPosts.push(post_id);
+
+      // Update posts table
+      params = {
+        Item: {
+          username: {
+            S: username
+          },
+          posts: {
+            SS: newPosts
+          }
+        },
+        TableName: "users_to_posts"
+      }
+      db.putItem(params, function(err, data) {
+        if (err) {
+          console.log(err);
+          callback("1", null);
+        } else {
+          callback(null, id);
+        }
+      })
+    }
+  });
 }
 
 // Error 1 means issue while adding to database
@@ -664,23 +779,13 @@ var add_posts = function(posts, creator, callback) {
 }
 
 // Error 1 means issue while writing to database
-// Returns comment_id as data
 var add_comment = function(creator, post_id, timestamp, content, callback) {
-  console.log("Creating new comment with content:");
-  console.log("Creator: " + creator);
-  console.log("Post: " + post_id);
-  console.log("Content: " + content);
-
-  id = uuidv4();
-  
-  // Convert timestamp to a string
   timestamp = timestamp.toString();
 
-  // First write to comments
   var params = {
     Item: {
-      comment_id: {
-        S: id
+      post_id: {
+        S: post_id
       },
       creator: {
         S: creator
@@ -691,11 +796,8 @@ var add_comment = function(creator, post_id, timestamp, content, callback) {
       timestamp: {
         N: timestamp
       },
-      post_id: {
-        S: post_id
-      }
     },
-    TableName: "comments"
+    TableName: "posts_to_comments"
   };
 
   db.putItem(params, function(err, data) {
@@ -703,28 +805,39 @@ var add_comment = function(creator, post_id, timestamp, content, callback) {
       console.log(err);
       callback("1", null);
     } else {
-      // Next write to posts_to_comments
-      params = {
-        Item: {
-          post_id: {
-            S: post_id
-          },
-          comment_id: {
-            S: id
-          }
-        },
-        TableName: "posts_to_comments"
-      };
-      db.putItem(params, function(err, data) {
-        if (err) {
-          console.log(err);
-          callback("1", null);
-        } else {
-          callback(null, id);
-        }
-      });
+      callback(null, "Success");
     }
   });
+}
+
+// Error 1 means issue while querying database
+var get_comments_for_post = function(post_id, callback) {
+  var params = {
+    KeyConditions: {
+      post_id: {
+        ComparisonOperator: 'EQ',
+        AttributeValueList: [ { S: post_id } ]
+      }
+    },
+    TableName: "posts_to_comments"
+  };
+
+  db.query(params, function(err, data) {
+    if (err) {
+      console.log(err);
+      callback("1", null);
+    } else {
+      comments = data.Items;
+      comments.sort(function(a, b) {
+        if (a.timestamp.N > b.timestamp.N) {
+          return -1;
+        } else {
+          return 1;
+        }
+      });
+      callback(null, comments);
+    }
+  })
 }
 
 // Creates a new chat
@@ -915,8 +1028,10 @@ var search_for_user = function(sub, callback) {
       callback(err);
     } else {
       var usernameKeys = data.Items.map(function(item) {
-        return item.username;
+        return item.username.S;
       });
+
+      console.log(usernameKeys);
 
       // Sort the username keys by the index of the first occurrence
       // of the substring, from smallest to largest
@@ -940,6 +1055,9 @@ var search_for_user = function(sub, callback) {
   });
 };
 
+
+
+
 var database = { 
   createUser: create_user,
   loginCheck: login_check,
@@ -960,7 +1078,10 @@ var database = {
   getChatsForUser: get_chats_for_user,
   addMessageToChat: add_message_to_chat,
   getChatMessages: get_chat_messages,
-  searchUser: search_for_user
+  searchUser: search_for_user,
+  getUsersAffiliation: get_users_affiliation,
+  getCommentsForPost: get_comments_for_post,
+  addPostToUser: add_post_to_user
 };
   
 module.exports = database;

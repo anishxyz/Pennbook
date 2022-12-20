@@ -54,21 +54,40 @@
 </nav>
 <div class="container" style="padding: 25px 0;">
     <div class="row">
-        <div class="col-md-3">
-            <h3>Friends</h3>
-            <ul class="list-group">
-                <%if (friends != null) { %>
-                    <% friends.forEach(f => { %>
-                        <li class="list-group-item"><% f %></li>
-                    <% }); %>
-                <% } %>
-                <li class="list-group-item">Johnny</li>
-                <li class="list-group-item">Harry</li>
-                <li class="list-group-item">David</li>
-            </ul>
-        </div>
+<!--        <div class="col-md-3">-->
+<!--            <h3>Friends</h3>-->
+<!--            <ul class="list-group">-->
+<!--                <%if (friends != null) { %>-->
+<!--                    <% friends.forEach(f => { %>-->
+<!--                        <li class="list-group-item"><% f %></li>-->
+<!--                    <% }); %>-->
+<!--                <% } %>-->
+<!--                <li class="list-group-item">Johnny</li>-->
+<!--                <li class="list-group-item">Harry</li>-->
+<!--                <li class="list-group-item">David</li>-->
+<!--            </ul>-->
+<!--        </div>-->
+            <div class="col-md-3">
+                <%if (currUser != u) { %>
+                <form method="post" action="/writeonwall?username=<%- u -%>">
+                    <h4> Post on <%- u -%>'s wall</h2>
+                    <input type="text" name="text" size="20" class="form-control" placeholder="Post Text">
+                    <input type="submit" name="submit" value="+" class="btn btn-lg btn-primary btn-block">
+                </form>
+                <%}%>
+                <br>
+                <h4><%- u -%>'s Info</h4>
+                <strong>Birthday: </strong> <%- currUserInfo.birthday.S -%>
+                <br>
+                <strong>Affiliation: </strong> <%- currUserInfo.affiliation.S -%>
+                <br>
+                <strong>Interests: </strong>
+                <% currUserInfo.interests.SS.forEach(interest => { %>
+                    <span class="badge rounded-pill bg-primary"><%- interest -%></span>
+                <%})%>
+            </div>
         <div class="col-md-9">
-            <h3>My Posts</h3>
+            <h3><%- u -%>'s Posts</h3>
             <%if (myposts != null) { %>
                 <% myposts.forEach(p => { %>
                 <%if (p.type.S == "post") {%>
@@ -78,7 +97,7 @@
                             <p class="card-text"><%- p.content.S -%></p>
                         </div>
                         <div class="card-footer">
-                            <small class="text-muted"><%- p.timestamp.N -%></small>
+                            <small class="text-muted"><%- p.time_ago -%></small>
                         </div>
                     </div>
                 <%}%>
@@ -89,7 +108,7 @@
                             <p class="card-text"><%- p.content.S -%></p>
                         </div>
                         <div class="card-footer">
-                            <small class="text-white"><%- p.timestamp.N -%></small>
+                            <small class="text-white"><%- p.time_ago -%></small>
                         </div>
                     </div>
                 <%}%>
@@ -100,7 +119,7 @@
                             <p class="card-text"><%- p.content.S -%></p>
                         </div>
                         <div class="card-footer">
-                            <small class="text-white"><%- p.timestamp.N -%></small>
+                            <small class="text-white"><%- p.time_ago -%></small>
                         </div>
                     </div>
                 <%}%>

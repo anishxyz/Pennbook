@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Home</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
     <script src="/socket.io/socket.io.js"></script>
@@ -46,6 +47,58 @@
           cursor: pointer;
         }
         </style>
+    <style>
+        .autocomplete {
+        /*the container must be positioned relative:*/
+        position: relative;
+        display: inline-block;
+        }
+        .autocomplete-items {
+        position: absolute;
+        border: 1px solid #d4d4d4;
+        border-bottom: none;
+        border-top: none;
+        z-index: 99;
+        /*position the autocomplete items to be the same width as the container:*/
+        top: 100%;
+        left: 0;
+        right: 0;
+        }
+        .autocomplete-items div {
+        padding: 10px;
+        cursor: pointer;
+        background-color: #fff; 
+        border-bottom: 1px solid #d4d4d4; 
+        }
+        .autocomplete-items div:hover {
+        /*when hovering an item:*/
+        background-color: #e9e9e9; 
+        }
+        .autocomplete-active {
+        /*when navigating through the items using the arrow keys:*/
+        background-color: DodgerBlue !important; 
+        color: #ffffff; 
+        }
+
+        a {
+            color: inherit; /* blue colors for links too */
+            text-decoration: inherit; /* no underline */
+        }
+
+        .activeUserLink a {
+            padding-bottom: 1px;
+            text-decoration: none;
+            color: #000;
+            box-shadow: inset 0 -4px 0 rgba(13,190,152,0.7);
+            transition: background-color .25s ease-out;
+        }
+
+        .activeUserLink a:hover {
+            background-color: rgba(13,190,152,0.7);
+            padding-top: 2px;
+            box-shadow: none;
+        }
+    </style>
 </head>
 <body>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
@@ -56,6 +109,7 @@
         var modal;
         var modalHiddenFormInput;
         var closeButton;
+        var commentActive = false;
 
         window.onload = function() {
             posts = '<%= posts %>';
@@ -67,6 +121,7 @@
             closeButton.onclick = function() {
                 modal.style.display = "none";
             }
+            autocomplete(document.getElementById("searchinput"));
         }
 
 
@@ -100,6 +155,12 @@
 
 
         function updatePosts() {
+            // don't fetch new content with comments offcanvas is open
+            if (commentActive) {
+                setTimeout(updatePosts, 20000);
+                return;
+            }
+
             $.getJSON('http://localhost:8080/updateposts', function(newPosts) {
                 if (newPosts == null || newPosts.length == 0) {
                     return;
@@ -108,10 +169,16 @@
                 $("#post_section").load(location.href + " #post_section>*", "");
             });
 
-            setTimeout(updatePosts, 50000);
+            setTimeout(updatePosts, 20000);
         }
 
         function updateFriends() {
+            // don't fetch new content with comments offcanvas is open
+            if (commentActive) {
+                setTimeout(updateFriends, 20000);
+                return;
+            }
+
             $.getJSON('http://localhost:8080/updatefriends', function(newFriends) {
                 if (newFriends == null || newFriends.length == 0) {
                     return;
@@ -120,13 +187,140 @@
                 $("#friend_section").load(location.href + " #friend_section>*", "");
             });
 
-            setTimeout(updateFriends, 50000);
+            setTimeout(updateFriends, 20000);
         }
 
         $(document).ready(function() {
             updatePosts();
             updateFriends();
         });
+
+        function autocomplete(inp) {
+            var currentFocus;
+            // update autocomplete options
+            inp.addEventListener("input", function(e) {
+                var a, b, i, val = this.value;
+                closeAllLists();
+                if (!val) {
+                    return false;
+                }
+                currentFocus = -1;
+                a = document.createElement("DIV");
+                a.setAttribute("id", this.id + "autocomplete-list");
+                a.setAttribute("class", "autocomplete-items");
+                this.parentNode.appendChild(a);
+                $(document).ready(function() {
+                    $.getJSON("/search2?query=" + val, function(results) {
+                        for (result of results) {
+                            b = document.createElement("DIV");
+                            b.innerHTML = result;
+                            b.innerHTML += "<input type='hidden' value='" + result + "'>";
+                            b.addEventListener("click", function(e) {
+                                inp.value = this.getElementsByTagName("input")[0].value;
+                                closeAllLists();
+                            });
+                            a.appendChild(b);
+                        }
+                    });
+                });
+            });
+
+            // allow arrow keys to move through options
+            inp.addEventListener("keydown", function(e) {
+                var x = document.getElementById(this.id + "autocomplete-list");
+                if (x) x = x.getElementsByTagName("div");
+                if (e.keyCode == 40) {
+                    currentFocus++;
+                    addActive(x);
+                } else if (e.keyCode == 38) { //up
+                    currentFocus--;
+                    addActive(x);
+                } else if (e.keyCode == 13) {
+                    e.preventDefault();
+                    if (currentFocus > -1) {
+                        if (x) x[currentFocus].click();
+                    }
+                }
+            });
+
+        // make the input as inactive
+        function addActive(x) {
+            if (!x) return false;
+            removeActive(x);
+            if (currentFocus >= x.length) currentFocus = 0;
+            if (currentFocus < 0) currentFocus = (x.length - 1);
+            x[currentFocus].classList.add("autocomplete-active");
+        }
+
+        // mark the input as active
+        function removeActive(x) {
+            for (var i = 0; i < x.length; i++) {
+            x[i].classList.remove("autocomplete-active");
+            }
+        }
+
+        // close all autocomplete lists
+        function closeAllLists(elmnt) {
+            var x = document.getElementsByClassName("autocomplete-items");
+            for (var i = 0; i < x.length; i++) {
+                if (elmnt != x[i] && elmnt != inp) {
+                    x[i].parentNode.removeChild(x[i]);
+                }
+            }
+        }
+
+        // close all autocompletes
+        document.addEventListener("click", function(e) {
+            closeAllLists(e.target);
+        });
+        }
+
+        var myOffcanvas = null;
+
+        function getComments(postId, creator, content, time) {
+            document.getElementById('offposter').textContent = "Post by " + creator;
+            console.log(content);
+            document.getElementById('offcontent').textContent = content;
+            document.getElementById('offtime').textContent = time;
+
+            // disable AJAX reloads when comment offcanvas is open
+            commentActive = true;
+
+            if (myOffcanvas == null) {
+                myOffcanvas = document.getElementById('offcanvasExample');
+                myOffcanvas.addEventListener('hidden.bs.offcanvas', event => {
+                    console.log("hidden offcanvas");
+                    commentActive = false;
+                });
+            }
+
+            console.log(postId);
+            console.log(creator);
+            console.log(content);
+            console.log(time);
+            console.log("loading comments");
+        }
+
+        function addComment(postId) {
+            var comment = document.getElementById('comment').value;
+            console.log(comment);
+
+            $(document).ready(() => {
+                $.ajax({
+                    url: "/addcomment",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({
+                        id: postId,
+                        cont: comment,
+                    }),
+                });
+                console.log("request made");
+            });
+
+            console.log('<%= currUser %>' + ": " + comment);
+            console.log("adding comment");
+        }
     </script>
 <div id="myModal" class="modal">
 
@@ -158,9 +352,14 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/createpostpage">Create Post</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/visualizer">Friend Visualizer</a>
+                </li>
             </ul>
-            <form class="d-flex justify-content-center" method="get" action="/search" style="padding: 5px 10px;">
-                <input class="form-control me-2" type="search" id="query" name="query" placeholder="Search" aria-label="Search">
+            <form class="d-flex justify-content-center" autocomplete="off" method="get" action="/search" style="padding: 5px 10px;">
+                <div class="autocomplete">
+                    <input class="form-control me-2" type="search" id="searchinput" name="query" placeholder="Search" aria-label="Search">
+                </div>
                 <button class="btn btn-outline-success" type="submit">Search</button>
             </form>
             <div class="btn-group">
@@ -187,13 +386,14 @@
                         <%if (f.online.S == "yes") {%>
                             <li class="list-group-item list-group-item-success">
                                 
-                                <%- f.username.S -%>
+                                <a class="activeUserLink" href="/user?friend=<%- f.username.S -%>"><%- f.username.S -%></a>
                                 <br>
                                 <form class="d-flex justify-content-center" method="post" action="/chat" style="padding: 5px 10px;">
                                     <input class="form-control me-2" type="hidden" id="usernameInput" name="usernameInput" value= "<%- f.username.S -%>">
                                     <button class="btn btn-outline-success" type="submit">Enter Chat</button>
                                 </form>
                             
+        
                             </li>
                         <%}%>
                         <%if (f.online.S == "no") {%>
@@ -203,6 +403,9 @@
 
                             
                             </li>
+                                <a class="activeUserLink" href="/user?friend=<%- f.username.S -%>"><%- f.username.S -%></a>
+                            </li>
+
                         <%}%>
                     <% }); %>
                 <% } %>
@@ -215,8 +418,31 @@
                     <%if (p.type.S == "post") {%>
                     <div class="card mb-3 bg-light">
                         <div class="card-body">
-                            <h5 class="card-title"><%- p.creator.S -%></h5>
+                            <h5 class="card-title">
+                                <a href="/user?friend=<%- p.creator.S -%>"><%- p.creator.S -%></a>
+                            </h5>
                             <p class="card-text"><%- p.content.S -%></p>
+                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample"
+                                    onclick="getComments('<%- p.post_id.S -%>', '<%- p.creator.S -%>', '<%- p.content.S -%>', '<%- p.time_ago -%>')">
+                                View Comments
+                            </button>
+<!--                            Post Left Bar-->
+                            <div class="offcanvas offcanvas-start" data-bs-scroll="true" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+                                <div class="offcanvas-header">
+                                    <h5 class="offcanvas-title" id="offposter">post</h5>
+                                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                                </div>
+                                <div class="offcanvas-body">
+                                    <div id="offcontent">cont</div>
+                                    <small class="text-muted" id="offtime">time</small>
+                                    <form class="form-inline" onSubmit="return false">
+                                        <div class="form-group">
+                                            <input type="text" class="form-control" id="comment" placeholder="Add Comment">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary" onclick="addComment('<%- p.post_id.S -%>')">+</button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
                         <div class="card-footer">
                             <small class="text-muted"><%- p.time_ago -%></small>
@@ -226,7 +452,9 @@
                     <%if (p.type.S == "status_update") {%>
                     <div class="card text-white mb-3 bg-secondary">
                         <div class="card-body">
-                            <h5 class="card-title"><%- p.creator.S -%></h5>
+                            <h5 class="card-title">
+                                <a href="/user?friend=<%- p.creator.S -%>"><%- p.creator.S -%></a>
+                            </h5>
                             <p class="card-text"><%- p.content.S -%></p>
                         </div>
                         <div class="card-footer">
@@ -237,7 +465,9 @@
                     <%if (p.type.S == "friend_update") {%>
                     <div class="card text-white mb-3 bg-success">
                         <div class="card-body">
-                            <h5 class="card-title"><%- p.creator.S -%></h5>
+                            <h5 class="card-title">
+                                <a href="/user?friend=<%- p.creator.S -%>"><%- p.creator.S -%></a>
+                            </h5>
                             <p class="card-text"><%- p.content.S -%></p>
                         </div>
                         <div class="card-footer">

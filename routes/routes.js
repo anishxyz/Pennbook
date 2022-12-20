@@ -747,6 +747,20 @@ var addComment = function(req, res) {
 }
 
 var getComments = function(req, res) {
+    if (req.session.username == null) {
+        console.log("here");
+        res.redirect('/');
+    } else {
+        db.getCommentsForPost(req.body.id, function(err, data) {
+            if (err) {
+                console.log("here2");
+                console.log(err);
+                res.redirect('/home');
+            } else {
+                res.send(JSON.stringify(data));
+            }
+        });
+    }
 }
 
 var routes = {

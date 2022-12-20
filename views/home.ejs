@@ -479,30 +479,30 @@
                         </div>
                     </div>
                 <% } %>
+                    <!--                            Post Left Bar-->
+                    <div class="offcanvas offcanvas-start" data-bs-scroll="true" tabindex="-1"
+                         id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+                        <div class="offcanvas-header">
+                            <h5 class="offcanvas-title" id="offposter">post</h5>
+                            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
+                                    aria-label="Close"></button>
+                        </div>
+                        <div class="offcanvas-body">
+                            <div id="offcontent">cont</div>
+                            <small class="text-muted" id="offtime">time</small>
+                            <form class="form-inline" onSubmit="return false">
+                                <div class="form-group">
+                                    <input type="text" class="form-control" id="comment"
+                                           placeholder="Add Comment">
+                                </div>
+                                <button type="submit" class="btn btn-primary"
+                                        onclick="addComment('<%- p.post_id.S -%>')">+
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 <% }); %>
             <% } %>
-            <!--                            Post Left Bar-->
-            <div class="offcanvas offcanvas-start" data-bs-scroll="true" tabindex="-1"
-                 id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
-                <div class="offcanvas-header">
-                    <h5 class="offcanvas-title" id="offposter">post</h5>
-                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
-                            aria-label="Close"></button>
-                </div>
-                <div class="offcanvas-body">
-                    <div id="offcontent">cont</div>
-                    <small class="text-muted" id="offtime">time</small>
-                    <form class="form-inline" onSubmit="return false">
-                        <div class="form-group">
-                            <input type="text" class="form-control" id="comment"
-                                   placeholder="Add Comment">
-                        </div>
-                        <button type="submit" class="btn btn-primary"
-                                onclick="addComment('<%- p.post_id.S -%>')">+
-                        </button>
-                    </form>
-                </div>
-            </div>
         </div>
     </div>
 </div>

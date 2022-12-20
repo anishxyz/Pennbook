@@ -5,6 +5,48 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        
+        /* The Modal (background) */
+        .modal {
+          display: none; /* Hidden by default */
+          position: fixed; /* Stay in place */
+          z-index: 1; /* Sit on top */
+          padding-top: 100px; /* Location of the box */
+          left: 0;
+          top: 0;
+          width: 100%; /* Full width */
+          height: 100%; /* Full height */
+          overflow: auto; /* Enable scroll if needed */
+          background-color: rgb(0,0,0); /* Fallback color */
+          background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+        
+        /* Modal Content */
+        .modal-content {
+          background-color: #fefefe;
+          margin: auto;
+          padding: 20px;
+          border: 1px solid #888;
+          width: 80%;
+        }
+        
+        /* The Close Button */
+        .close {
+          color: #aaaaaa;
+          float: right;
+          font-size: 28px;
+          font-weight: bold;
+        }
+        
+        .close:hover,
+        .close:focus {
+          color: #000;
+          text-decoration: none;
+          cursor: pointer;
+        }
+        </style>
     <style>
         .autocomplete {
         /*the container must be positioned relative:*/
@@ -63,13 +105,54 @@
     <script type="text/javascript">
         var posts = [];
         var friends = [];
+        var currUser = "";
+        var modal;
+        var modalHiddenFormInput;
+        var closeButton;
         var commentActive = false;
 
         window.onload = function() {
             posts = '<%= posts %>';
             friends = '<%= friends %>';
+            currUser = '<%= currUser %>';
+            modal = document.getElementById("myModal"); 
+            modalHiddenFormInput = document.getElementById("usernameInput"); 
+            closeButton = document.getElementById("closeButton");
+            closeButton.onclick = function() {
+                modal.style.display = "none";
+            }
             autocomplete(document.getElementById("searchinput"));
         }
+
+
+        
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }     
+
+        var socket = io();
+
+        socket.on('chat invite', function({recipient, otherUsersString}) {
+
+
+            console.log("GOT AN INVITE TO CHAT AS USER " +  currUser + " FROM " + otherUsersString + " TO " + recipient);
+
+            if (currUser == recipient) {
+            
+        
+                modal.style.display = "block";
+                document.getElementById("usernameInput").value = otherUsersString + "," + recipient;
+
+
+                // alert("Got an invite to chat from " + sender + ".")
+
+
+            }
+        });
+
 
         function updatePosts() {
             // don't fetch new content with comments offcanvas is open
@@ -243,6 +326,22 @@
             console.log("adding comment");
         }
     </script>
+<div id="myModal" class="modal">
+
+
+    <div class="modal-content">
+      <p>You got an invite to chat!</p>
+      <form method="post" action="/chat" class="msger-inputarea">
+        <input class="form-control me-2" type="hidden" id="usernameInput" name="usernameInput" value= "">
+        <input type="submit" name="submit" value="Enter Chat" class="btn btn-outline-success">
+        <button class="btn btn-outline-danger" type="submit" id="closeButton">Exit</button>
+      </form>
+    </div>
+  
+  </div>
+  
+
+  
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">PennBook</a>
@@ -253,9 +352,6 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
                     <a class="nav-link active" aria-current="page" href="#">Feed</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/enterchat">Chat</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="/createpostpage">Create Post</a>
@@ -293,11 +389,24 @@
                     <% friends.forEach(f => { %>
                         <%if (f.online.S == "yes") {%>
                             <li class="list-group-item list-group-item-success">
+                                
                                 <a class="activeUserLink" href="/user?friend=<%- f.username.S -%>"><%- f.username.S -%></a>
+                                <br>
+                                <form class="d-flex justify-content-center" method="post" action="/chat" style="padding: 5px 10px;">
+                                    <input class="form-control me-2" type="hidden" id="usernameInput" name="usernameInput" value= "<%- f.username.S -%>">
+                                    <button class="btn btn-outline-success" type="submit">Enter Chat</button>
+                                </form>
+                            
+        
                             </li>
                         <%}%>
                         <%if (f.online.S == "no") {%>
                             <li class="list-group-item">
+                                
+                                <%- f.username.S -%>
+
+                            
+                            </li>
                                 <a class="activeUserLink" href="/user?friend=<%- f.username.S -%>"><%- f.username.S -%></a>
                             </li>
 

@@ -17,6 +17,7 @@
    const http = require('http');
    const server = http.createServer(app);
    const { Server } = require("socket.io");
+  const req = require('express/lib/request');
    const io = new Server(server);
    
    
@@ -62,11 +63,17 @@
   app.get('/updatevisualizer', routes.update_visualizer);
 
    io.on('connection', (socket) => {
-    socket.on('chat message', ({msg, sender, recipient}) => {
-      console.log("RECIPIENT IN APP.JS " + recipient);
-        io.emit('chat message', {msg, sender, recipient});
+    socket.on('chat message', ({msg, sender, recipients}) => {
+      console.log("RECIPIENT IN APP.JS " + recipients);
+        io.emit('chat message', {msg, sender, recipients});
         console.log('message: ' + msg);
       });
+
+      socket.on('chat invite', ({recipient, otherUsersString}) => {
+          console.log("SENT CHAT INVITE FROM " + otherUsersString + " TO " + recipient)
+          io.emit('chat invite', {recipient, otherUsersString});
+        })
+
     console.log('a user connected');
     socket.on('disconnect', () => {
         console.log('user disconnected');

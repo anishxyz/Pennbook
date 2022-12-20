@@ -69,6 +69,7 @@
 <!--        </div>-->
             <div class="col-md-3">
                 <%if (currUser != u) { %>
+                    <br>
                 <form method="post" action="/writeonwall?username=<%- u -%>">
                     <h4> Post on <%- u -%>'s wall</h2>
                     <input type="text" name="text" size="20" class="form-control" placeholder="Post Text">

@@ -494,7 +494,7 @@ var updatePosts = function(req, res) {
 var writeOnWall = function(req, res) {
   writer = req.session.username;
   other = req.query.username;
-  text = writer + " posted on " + other + " wall:<br>" + req.body.text;
+  text = writer + " posted on " + other + ": " + req.body.text;
   db.addPost(writer, "post", text, Date.now(), function(err, data) {
     if (err) {
       console.log(err);

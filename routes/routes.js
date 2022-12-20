@@ -22,16 +22,51 @@ var getEnterChat = function(req, res) {
 };
 
  var startChat = async function(req, res) {
-    var otherUser = req.body.usernameInput;
+    var validAdditons = true;
+
+    // if (req.body.newUsernameInput != null) {
+    //   var friendsList = await db.getFriends(req.session.username, function(err, data) {
+    //     if (err) {
+    //       console.log(err);
+    //     }
+    //   })
+
+    //   var splitAdditions = req.body.newUsernameInput.split(",");
+
+    //   if (friendsList != null) {
+    //     for (let i = 0; i < splitAdditions.length; i++) {
+    //       if (!friendsList.includes(splitAdditions[i])) {
+    //         console.log(splitAdditions[i] + " NOT IN FRIENDS LIST")
+    //         validAdditons = false;
+    //       }
+    //     } 
+    //  } else {
+    //    // no friends? can't add anyone
+    //   validAdditons = false;
+    //  }
+    // }
+
+    db.getFriends(req.session.username, function(err, friendsList) {
+      console.log("FRIENDS HERE", friendsList);
+      var otherUsers = req.body.usernameInput + "," + req.body.newUsernameInput;
+    console.log(otherUsers)
+    console.log("TOTAL OTHERS ARE ", otherUsers.split(","));
 
     // sort list of users then stringfy that list and look in db if any existing chats with this group
 
-    var list_of_users = [req.session.username, otherUser];
+    var list_of_users = otherUsers.split(",");
+    list_of_users.push(req.session.username);
+    list_of_users = list_of_users.filter(function(e) { return e !== 'undefined' })
+    list_of_users = list_of_users.filter((element, index) => {
+      return list_of_users.indexOf(element) === index;
+  });
+
+
     var sorted_list_of_users = list_of_users.sort();
     var prevMessages = [];
     var chat_id = 0;
 
-    await db.getChatsForUsers(sorted_list_of_users, function(err, data) {    
+     db.getChatsForUsers(sorted_list_of_users, function(err, data) {    
         if (data == null) {
           // create a new chat
           db.createChat(sorted_list_of_users, function(err, data) {  
@@ -39,7 +74,7 @@ var getEnterChat = function(req, res) {
               console.log("CHAT CREATION FAILED");
             } else {
               chat_id = data;
-              res.render('chat.ejs', {message: null, user: req.session.username, otherUser: otherUser, chat_id: chat_id, prevMessages: prevMessages.toString()});
+              res.render('chat.ejs', {message: null, user: req.session.username, otherUsers: sorted_list_of_users.toString(), chat_id: chat_id, prevMessages: prevMessages.toString(), friends: friendsList.toString()});
             }
           });
         } else {
@@ -51,15 +86,23 @@ var getEnterChat = function(req, res) {
             }
             console.log("PREV HERE ", prevMessages);
             
-            res.render('chat.ejs', {message: null, user: req.session.username, otherUser: otherUser, chat_id: chat_id, prevMessages: prevMessages.toString()});
+            res.render('chat.ejs', {message: null, user: req.session.username, otherUsers: sorted_list_of_users.toString(), chat_id: chat_id, prevMessages: prevMessages.toString(), friends: friendsList.toString()});
           });
         }
     });
     // get prev messages from db
+    })
 
+    // var friendsList = await db.getFriends(req.session.username, function(err, data) {
+    //   if (err) {
+    //     console.log(err);
+    //   }
+    // })
 
+   
 
     
+
  };
 
  var getCreatePost = function(req, res) {

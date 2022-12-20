@@ -1,7 +1,50 @@
 <html>
   <head>
     <title>Socket.IO chat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
     <style>
+
+      /* The Modal (background) */
+      .modal {
+          display: none; /* Hidden by default */
+          position: fixed; /* Stay in place */
+          z-index: 1; /* Sit on top */
+          padding-top: 100px; /* Location of the box */
+          left: 0;
+          top: 0;
+          width: 100%; /* Full width */
+          height: 100%; /* Full height */
+          overflow: auto; /* Enable scroll if needed */
+          background-color: rgb(0,0,0); /* Fallback color */
+          background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+        
+        /* Modal Content */
+        .modal-content {
+          background-color: #fefefe;
+          margin: auto;
+          padding: 20px;
+          border: 1px solid #888;
+          width: 80%;
+        }
+        
+        /* The Close Button */
+        .close {
+          color: #aaaaaa;
+          float: right;
+          font-size: 28px;
+          font-weight: bold;
+        }
+        
+        .close:hover,
+        .close:focus {
+          color: #000;
+          text-decoration: none;
+          cursor: pointer;
+        }
+
+        
   :root {
   --body-bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   --msger-bg: #fff;
@@ -164,14 +207,26 @@ body {
 
   <body>
 
+    <div id="myModal" class="modal">
 
+
+      <div class="modal-content">
+        <p>You got an invite to chat!</p>
+        <form method="post" action="/chat" class="">
+          <input class="form-control me-2" type="hidden" id="usernameInput" name="usernameInput" value= "">
+          <input type="submit" name="submit" value="Enter Chat" class="btn btn-outline-success">
+          <button class="btn btn-outline-danger" type="submit" id="closeButton">Close</button>
+        </form>
+      </div>
+    
+    </div>
    
 
 
     <section class="msger" >
       <header class="msger-header">
         <div class="msger-header-title">
-          <i class="fas fa-comment-alt"></i> G26 Chat
+          <i class="fas fa-comment-alt"></i> G26 Chat, users in this chat are: <%-otherUsers-%>
         </div>
         <div class="msger-header-options">
           <span><i class="fas fa-cog"></i></span>
@@ -186,7 +241,7 @@ body {
                 <div class="msg right-msg">
                   <div class="msg-bubble">
                     <div class="msg-info">
-                      <div class="msg-info-name"><%- user -%></div>
+                      <div class="msg-info-name"><%- m.split(":")[0] -%></div>
                     </div>
             
                     <div class="msg-text">
@@ -199,7 +254,7 @@ body {
                 <div class="msg left-msg">
                   <div class="msg-bubble">
                     <div class="msg-info">
-                      <div class="msg-info-name"><%- otherUser -%></div>
+                      <div class="msg-info-name"><%- m.split(":")[0] -%></div>
                     </div>
             
                     <div class="msg-text">
@@ -222,10 +277,22 @@ body {
       <form id="form" action="" class="msger-inputarea">
         <input id="input" autocomplete="off" class="msger-input" placeholder="Enter your message..."/><button class="msger-send-btn">Send</button>
       </form>
+
+      <form method="post" action="/chat" class="msger-inputarea" onsubmit="return checkFriend();">
+        <h2> Who else do you want to chat with? Separate their names by commas. </h2>
+        <input class="form-control me-2" type="hidden" id="usernameInput" name="usernameInput" value= "<%- otherUsers -%>">
+        <input type="text" name="newUsernameInput" id="newUsernameInput"class="msger-input" size="20" placeholder="Username" value="">
+        <br>
+        <br>
+        <input type="submit" name="submit" value="Enter Chat" class="msger-send-btn">
+      </form>
+    </form>
     </section>
 
+    
 
 
+    
 
 <!-- 
     
@@ -243,22 +310,25 @@ body {
 <script>
 
   var currUser = "";
-  var otherUser = "";
+  var otherUsers = [];
   var allMessages = [];
   var chat_id;
   var chatView;
+  var modal;
+  var modalHiddenFormInput;
+  var closeButton;
+  var localOtherUsers;
+  var friends;
 
 window.onload = function() {
 
   currUser = '<%= user %>';
-  otherUser = '<%= otherUser %>';
+  otherUsers = '<%= otherUsers %>'.split(",");
   allMessages = '<%= prevMessages %>';
   chat_id = '<%= chat_id %>';
+  friends = '<%= friends %>'.split(",");
 
   chatView = document.getElementById('msglist');
-
-  document.getElementById('chatTitle').innerHTML
-                = 'Chat with ' + otherUser + " (current user is " + currUser + ")";
 
 
 
@@ -266,17 +336,56 @@ window.onload = function() {
   allMessages = allMessages.split(",");
 
 
-  console.log("PREV MES  ", prevMessages);
-  console.log("DOING AN ONLOAD WITH CURR USER ", currUser, " AND OTHERUSER ", otherUser);
-
   chatView.scrollTop = chatView.scrollHeight;
 
+  const otherUsersString = otherUsers.toString();
+  localOtherUsers = otherUsersString;
+  console.log("HERE " + otherUsers[0]);
 
+  for (let k = 0; k < otherUsers.length; k++) {
+    let recipient = otherUsers[k];
+    console.log("EMITING INVITE FROM " + otherUsersString + " TO " + recipient);
+    socket.emit('chat invite', ({recipient, otherUsersString}));
+  }
+
+  modal = document.getElementById("myModal"); 
+            modalHiddenFormInput = document.getElementById("usernameInput"); 
+            closeButton = document.getElementById("closeButton");
+            closeButton.onclick = function() {
+                modal.style.display = "none";
+            }
 
 }
 
-
+function checkFriend(){
+  var newNames = document.getElementById("newUsernameInput").value.split(","); 
+  for (let i = 0; i < newNames.length; i++) {
+    if (!friends.includes(newNames[i])) {
+      alert("You can only add your friends!");
+      return false;
+    }
+  } 
+  return true;
+  }
   var socket = io();
+
+
+  socket.on('chat invite', function({recipient, otherUsersString}) {
+
+
+      console.log("GOT AN INVITE TO CHAT AS USER " +  currUser + " FROM " + otherUsersString + " TO " + recipient);
+
+      if (currUser == recipient && otherUsersString != localOtherUsers) {
+    
+          modal.style.display = "block";
+          document.getElementById("usernameInput").value = otherUsersString + "," + recipient;
+
+
+          // alert("Got an invite to chat from " + sender + ".")
+
+
+      }
+  });
 
   var form = document.getElementById("form");
   var input = document.getElementById('input');
@@ -286,8 +395,8 @@ window.onload = function() {
     if (input.value) {
       var msg = input.value;
       var sender = currUser;
-      var recipient = otherUser;
-      socket.emit('chat message', ({msg, sender, recipient}));
+      var recipients = otherUsers;
+      socket.emit('chat message', ({msg, sender, recipients}));
 
       // add to db
     $(document).ready(() => {
@@ -305,9 +414,6 @@ window.onload = function() {
        });
    })
 
-
-      console.log("OTHER USER ON EMIT ", recipient)
-      console.log("MESSAGE ON EMIT ", msg)
       input.value = '';
 
       $("#msglist").append('<div class="msg right-msg"> <div class="msg-bubble"> <div class="msg-info"> <div class="msg-info-name">' + currUser + 
@@ -318,14 +424,14 @@ window.onload = function() {
     }
   });
 
-  socket.on('chat message', function({msg, sender, recipient}) {
+  socket.on('chat message', function({msg, sender, recipients}) {
     console.log("CURR USER ", currUser);
-    console.log("RECIPIENT ", recipient);
-    if (currUser == recipient && otherUser == sender) {
+    console.log("RECIPIENTS ", recipients);
+    if (recipients.includes(currUser) && otherUsers.includes(sender) && sender != currUser) {
      
  
 
-      $("#msglist").append('<div class="msg left-msg"> <div class="msg-bubble"> <div class="msg-info"> <div class="msg-info-name">' + otherUser + 
+      $("#msglist").append('<div class="msg left-msg"> <div class="msg-bubble"> <div class="msg-info"> <div class="msg-info-name">' + sender + 
         '</div>  <div class="msg-text">' + msg + ' </div> </div> </div>');
 
         chatView.scrollTop = chatView.scrollHeight;

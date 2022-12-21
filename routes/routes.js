@@ -765,8 +765,6 @@ var getComments = function(req, res) {
                 res.redirect('/home');
             } else {
                 res.send(JSON.stringify(data));
-                console.log("acquiring comments");
-                console.log(JSON.stringify(data));
             }
         });
     }

@@ -282,7 +282,11 @@
 
     var myOffcanvas = null;
 
+    var postIdGlobal = null;
+
     function getComments(postId, creator, content, time) {
+        postIdGlobal = postId;
+        console.log(postId);
         document.getElementById('offposter').textContent = "Post by " + creator;
         console.log(content);
         document.getElementById('offcontent').textContent = content;
@@ -305,8 +309,6 @@
         $(document).ready(() => {
 
             $.getJSON(link, function (coms) {
-                console.log(coms);
-
                 let list = document.getElementById('comlist');
 
                 while (list.firstChild) {
@@ -335,9 +337,8 @@
         });
     }
 
-    function addComment(postId) {
+    function addComment() {
         var comment = document.getElementById('comment').value;
-        console.log(comment);
 
         $(document).ready(() => {
             $.ajax({
@@ -345,7 +346,7 @@
                 type: "POST",
                 contentType: "application/json",
                 data: JSON.stringify({
-                    id: postId,
+                    id: postIdGlobal,
                     cont: comment,
                 }),
             });
@@ -434,7 +435,7 @@
                                 <br>
                                 <form class="d-flex justify-content-center" method="post" action="/chat" style="padding: 5px 10px;">
                                     <input class="form-control me-2" type="hidden" id="usernameInput" name="usernameInput" value= "<%- f.username.S -%>">
-                                    <button class="btn btn-outline-success" type="submit">Enter Chat</button>
+                                    <button class="btn btn-outline-success btn-sm" type="submit">Enter Chat</button>
                                 </form>
                             
         
@@ -497,7 +498,7 @@
                                 <a href="/user?friend=<%- p.creator.S -%>"><%- p.creator.S -%></a>
                             </h5>
                             <p class="card-text"><%- p.content.S -%></p>
-                            <button class="btn btn-outline-light" type="button" data-bs-toggle="offcanvas"
+                            <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="offcanvas"
                                     data-bs-target="#offcanvasExample" aria-controls="offcanvasExample"
                                     onclick="getComments('<%- p.post_id.S -%>', '<%- p.creator.S -%>', '<%- p.content.S.replace(/'/g, "\\'") -%>', '<%- p.time_ago -%>')">
                                 View Comments
@@ -529,7 +530,7 @@
                                            placeholder="Add Comment">
                                 </div>
                                 <button type="submit" class="btn btn-primary"
-                                        onclick="addComment('<%- p.post_id.S -%>')">+
+                                        onclick="addComment()">+
                                 </button>
                             </form>
                         </div>

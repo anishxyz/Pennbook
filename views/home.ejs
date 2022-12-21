@@ -309,6 +309,10 @@
 
                 let list = document.getElementById('comlist');
 
+                while (list.firstChild) {
+                    list.removeChild(list.firstChild);
+                }
+
                 for (let i = 0; i < coms.length; i++) {
                     let item = document.createElement('li');
                     item.textContent = coms[i].creator.S + " : " + coms[i].content.S;

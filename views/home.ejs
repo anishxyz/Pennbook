@@ -329,12 +329,6 @@
             //     console.log("end data");
             // });
         });
-
-        console.log(postId);
-        console.log(creator);
-        console.log(content);
-        console.log(time);
-        console.log("loading comments");
     }
 
     function addComment(postId) {
@@ -356,6 +350,13 @@
 
         console.log('<%= currUser %>' + ": " + comment);
         console.log("adding comment");
+
+        let list = document.getElementById('comlist');
+        let item = document.createElement('li');
+        item.textContent = currUser + " : " + comment;
+        list.appendChild(item);
+
+        document.getElementById('comment').value = "";
     }
 </script>
 <div id="myModal" class="modal">

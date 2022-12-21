@@ -834,9 +834,9 @@ var get_comments_for_post = function(post_id, callback) {
       comments = data.Items;
       comments.sort(function(a, b) {
         if (a.timestamp.N > b.timestamp.N) {
-          return -1;
-        } else {
           return 1;
+        } else {
+          return -1;
         }
       });
       callback(null, comments);

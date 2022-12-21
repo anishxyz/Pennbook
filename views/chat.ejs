@@ -223,6 +223,44 @@ body {
 
 
     <section class="msger" >
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">PennBook</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Feed</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/createpostpage">Create Post</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/visualizer">Friend Visualizer</a>
+                    </li>
+                </ul>
+                <form class="d-flex justify-content-center" autocomplete="off" method="get" action="/search" style="padding: 5px 10px;">
+                    <div class="autocomplete">
+                        <input class="form-control me-2" type="search" id="searchinput" name="query" placeholder="Search" aria-label="Search">
+                    </div>
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <%- user -%>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <a class="dropdown-item" href="/user">My Wall</a>
+                        <a class="dropdown-item" href="/editaccount">Edit Account</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="/logout">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
       <header class="msger-header">
         <div class="msger-header-title">
           <i class="fas fa-comment-alt"></i> G26 Chat, users in this chat are: <%-otherUsers-%>

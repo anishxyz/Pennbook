@@ -107,13 +107,13 @@ var getEnterChat = function(req, res) {
 
  var getCreatePost = function(req, res) {
    if (req.session.postInfoBlank == true) {
-    res.render('createpost.ejs', {message: 'Please complete all fields.'});
+    res.render('createpost.ejs', {message: 'Please complete all fields.', currUser: req.session.username});
    } else if (req.session.postFailed == true) {
-    res.render('createpost.ejs', {message: 'Post failed. Please try again.'});
+    res.render('createpost.ejs', {message: 'Post failed. Please try again.', currUser: req.session.username});
    } else if (req.session.postSucceeded == true) {
-    res.render('createpost.ejs', {message: 'Post succeeded! Post again or go back home.'});
+    res.render('createpost.ejs', {message: 'Post succeeded! Post again or go back home.', currUser: req.session.username});
    } else {
-    res.render('createpost.ejs', {message: null});
+    res.render('createpost.ejs', {message: null, currUser: req.session.username});
    }
 };
 
@@ -537,7 +537,7 @@ var updatePosts = function(req, res) {
 var writeOnWall = function(req, res) {
   writer = req.session.username;
   other = req.query.username;
-  text = writer + " posted on " + other + " wall:<br>" + req.body.text;
+  text = writer + " posted on " + other + ": " + req.body.text;
   db.addPost(writer, "post", text, Date.now(), function(err, data) {
     if (err) {
       console.log(err);

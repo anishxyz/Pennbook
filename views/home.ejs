@@ -405,32 +405,25 @@
             <ul class="list-group">
                 <% if (friends != null) { %>
                     <% friends.forEach(f => { %>
-                    <% if (f.online.S == "yes") { %>
-                        <li class="list-group-item list-group-item-success">
+                        <%if (f.online.S == "yes") {%>
+                            <li class="list-group-item list-group-item-success">
+                                
+                                <a class="activeUserLink" href="/user?friend=<%- f.username.S -%>"><%- f.username.S -%></a>
+                                <br>
+                                <form class="d-flex justify-content-center" method="post" action="/chat" style="padding: 5px 10px;">
+                                    <input class="form-control me-2" type="hidden" id="usernameInput" name="usernameInput" value= "<%- f.username.S -%>">
+                                    <button class="btn btn-outline-success" type="submit">Enter Chat</button>
+                                </form>
+                            
+        
+                            </li>
+                        <%}%>
+                        <%if (f.online.S == "no") {%>
+                            <li class="list-group-item">
+                                <a class="activeUserLink" href="/user?friend=<%- f.username.S -%>"><%- f.username.S -%></a>
+                            </li>
 
-                            <a class="activeUserLink" href="/user?friend=<%- f.username.S -%>"><%- f.username.S -%></a>
-                            <br>
-                            <form class="d-flex justify-content-center" method="post" action="/chat"
-                                  style="padding: 5px 10px;">
-                                <input class="form-control me-2" type="hidden" id="usernameInput" name="usernameInput"
-                                       value="<%- f.username.S -%>">
-                                <button class="btn btn-outline-success" type="submit">Enter Chat</button>
-                            </form>
-
-
-                        </li>
-                    <% } %>
-                    <% if (f.online.S == "no") { %>
-                        <li class="list-group-item">
-
-                            <%- f.username.S -%>
-
-
-                        </li>
-                        <a class="activeUserLink" href="/user?friend=<%- f.username.S -%>"><%- f.username.S -%></a>
-                        </li>
-
-                    <% } %>
+                        <%}%>
                     <% }); %>
                 <% } %>
             </ul>

@@ -300,9 +300,11 @@
         }
 
         console.log("post id: " + postId);
+        const link = `http://localhost:8080/getcomments?id=` + postId;
+        console.log(link);
         $(document).ready(() => {
 
-            $.getJSON(`http://localhost:8080/getcomments?id=${postId}`, function (coms) {
+            $.getJSON(link, function (coms) {
                 console.log(coms);
             });
 

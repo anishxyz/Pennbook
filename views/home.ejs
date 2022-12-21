@@ -314,8 +314,31 @@
                 }
 
                 for (let i = 0; i < coms.length; i++) {
-                    let item = document.createElement('li');
-                    item.textContent = coms[i].creator.S + " : " + coms[i].content.S;
+                    let item = document.createElement('div');
+                    // item.textContent = coms[i].creator.S + " : " + coms[i].content.S;
+                    // list.appendChild(item);
+
+
+                    let headingDiv = document.createElement('div');
+                    headingDiv.className = 'd-flex w-100 justify-content-between';
+
+                    let heading = document.createElement('h5');
+                    heading.className = 'mb-1';
+                    heading.textContent = coms[i].creator.S;
+
+                    let time = document.createElement('small');
+                    time.textContent = coms[i].timestamp.N;
+
+                    headingDiv.appendChild(heading);
+                    headingDiv.appendChild(time);
+
+                    let content = document.createElement('p');
+                    content.className = 'mb-1';
+                    content.textContent = coms[i].content.S;
+
+                    item.appendChild(headingDiv);
+                    item.appendChild(content);
+
                     list.appendChild(item);
                 }
             });
@@ -519,8 +542,10 @@
                             <div id="offcontent">cont</div>
                             <small class="text-muted" id="offtime">time</small>
                             <br>
-                            <ul id="comlist" class="list-group">
-                            </ul>
+
+                            <div id="comlist" class="list-group">
+                            </div>
+
                             <br>
                             <form class="form-inline" onSubmit="return false">
                                 <div class="form-group">

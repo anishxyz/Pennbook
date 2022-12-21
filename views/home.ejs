@@ -197,6 +197,7 @@
     $(document).ready(function () {
         updatePosts();
         updateFriends();
+        updateComments();
     });
 
     function autocomplete(inp) {
@@ -359,8 +360,6 @@
 
                     list.appendChild(item);
                 }
-
-                updateComments();
             });
 
             // $.ajax({
@@ -380,6 +379,7 @@
 
     function updateComments() {
         if (!commentActive) {
+            setTimeout(updateComments, 10000);
             return;
         }
 

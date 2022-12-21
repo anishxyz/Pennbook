@@ -311,10 +311,9 @@
 
                 for (let i = 0; i < coms.length; i++) {
                     let item = document.createElement('li');
-                    item.textContent = coms[i].post_id.S;
+                    item.textContent = coms[i].creator.S + " : " + coms[i].content.S;
                     list.appendChild(item);
                 }
-
             });
 
             // $.ajax({

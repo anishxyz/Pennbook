@@ -302,7 +302,7 @@
         console.log("post id: " + postId);
         $(document).ready(() => {
 
-            $.getJSON('http://localhost:8080/getcomments?id=1', function (coms) {
+            $.getJSON('http://localhost:8080/getcomments?id=' + postId, function (coms) {
                 console.log(coms);
             });
 

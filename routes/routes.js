@@ -111,7 +111,8 @@ var getEnterChat = function(req, res) {
    } else if (req.session.postFailed == true) {
     res.render('createpost.ejs', {message: 'Post failed. Please try again.', currUser: req.session.username});
    } else if (req.session.postSucceeded == true) {
-    res.render('createpost.ejs', {message: 'Post succeeded! Post again or go back home.', currUser: req.session.username});
+    req.session.postSucceeded = false;
+    res.redirect('/');
    } else {
     res.render('createpost.ejs', {message: null, currUser: req.session.username});
    }
@@ -751,7 +752,7 @@ var addComment = function(req, res) {
             if (err) {
                 console.log("here2");
                 console.log(err);
-                res.redirect('/home');
+                res.redirect('/');
             }
         });
     }

@@ -285,24 +285,29 @@
 </nav>
 <div class="container" style="padding: 25px 0;">
     <div class="row">
-        <div class="col-md-3" id="friend_section">
+        <div class="col-md-4" id="friend_section">
             <h3>Search Results</h3>
             <ul class="list-group">
                 <%if (friends != null) { %>
                     <% friends.forEach(f => { %>
                         <li class="list-group-item">
-                            <%- f -%>
-                            <br>
-                            <% if (!currFriends.includes(f)) { %>
-                                <form method="post" action="/addfriend">
-                                    <input class="form-control me-2" type="hidden" id="friend" name="friend" value= "<%- f -%>">
-                                    <button class="btn btn-outline-success btn-sm" type="submit">Add Friend</button>
-                                </form>
-                            <% } else { %>
-                                <button onclick="window.location.href='/user?friend=<%- f -%>';" class="btn btn-outline-success btn-sm">
-                                    View Page
-                                </button>
-                            <% } %>
+                            <div class="row">
+                                <div class="col align-self-start">
+                                    <%- f -%>
+                                </div>
+                                <div class="col align-self-end offset-md-5">
+                                    <% if (!currFriends.includes(f)) { %>
+                                        <form method="post" action="/addfriend">
+                                            <input class="form-control me-2" type="hidden" id="friend" name="friend" value= "<%- f -%>">
+                                            <button class="btn btn-outline-success btn-sm" type="submit">Add Friend</button>
+                                        </form>
+                                    <% } else { %>
+                                        <button onclick="window.location.href='/user?friend=<%- f -%>';" class="btn btn-outline-success btn-sm">
+                                            View Page
+                                        </button>
+                                    <% } %>
+                                </div>
+                            </div>
                         </li>
                     <% }); %>
                 <% } %>

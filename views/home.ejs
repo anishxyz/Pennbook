@@ -155,6 +155,8 @@
 
 
     function updatePosts() {
+        console.log("Updating posts");
+
         // don't fetch new content with comments offcanvas is open
         if (commentActive) {
             setTimeout(updatePosts, 10000);
@@ -173,9 +175,11 @@
     }
 
     function updateFriends() {
+        console.log("Updating friends");
+
         // don't fetch new content with comments offcanvas is open
         if (commentActive) {
-            setTimeout(updateFriends, 20000);
+            setTimeout(updateFriends, 10000);
             return;
         }
 
@@ -187,7 +191,7 @@
             $("#friend_section").load(location.href + " #friend_section>*", "");
         });
 
-        setTimeout(updateFriends, 20000);
+        setTimeout(updateFriends, 10000);
     }
 
     $(document).ready(function () {
@@ -283,28 +287,36 @@
 
     function getComments(postId, creator, content, time) {
         postIdGlobal = postId;
-        console.log(postId);
         document.getElementById('offposter').textContent = "Post by " + creator;
-        console.log(content);
         document.getElementById('offcontent').textContent = content;
         document.getElementById('offtime').textContent = time;
 
         // disable AJAX reloads when comment offcanvas is open
         commentActive = true;
 
-        if (myOffcanvas == null) {
-            myOffcanvas = document.getElementById('offcanvasExample');
-            myOffcanvas.addEventListener('hidden.bs.offcanvas', event => {
-                console.log("hidden offcanvas");
-                commentActive = false;
+        $('#offcanvasExample').on('hidden.bs.offcanvas', function() {
+            console.log("hidden offcanvas");
 
-                let list = document.getElementById('comlist');
+            commentActive = false;
 
-                while (list.firstChild) {
-                    list.removeChild(list.firstChild);
-                }
-            });
-        }
+            let list = document.getElementById('comlist');
+
+            list.innerHTML = "";
+
+            $('offcanvasExample').off('hidden.bs.offcanvas');
+        });
+
+        // if (myOffcanvas == null) {
+        //     myOffcanvas = document.getElementById('offcanvasExample');
+        //     myOffcanvas.addEventListener('hidden.bs.offcanvas', event => {
+        //         console.log("hidden offcanvas");
+        //         commentActive = false;
+
+        //         let list = document.getElementById('comlist');
+
+        //         list.innerHTML = "";
+        //     });
+        // }
 
         console.log("post id: " + postId);
         const link = `/getcomments?id=` + postId;

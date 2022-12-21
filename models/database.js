@@ -501,7 +501,7 @@ var get_posts = function(post_id_list, callback) {
       });
       
       for (item of res) {
-        if (item.content.S.includes("posted on")) {
+        if (item.content.S.includes("posted on") && item.content.S.includes("'s wall.")) {
           item.creator.S = item.content.S.split(" ")[0];
         }
       }

@@ -610,11 +610,16 @@ function time_ago(time) {
     token = 'ago',
     list_choice = 1;
 
+    if (seconds <= 2) {
+      return "Just now";
+    }
+
   if (seconds < 0) {
     seconds = Math.abs(seconds);
     token = 'from now';
     list_choice = 2;
   }
+
   var i = 0,
     format;
   while (format = time_formats[i++])
@@ -764,6 +769,9 @@ var getComments = function(req, res) {
                 console.log(err);
                 res.redirect('/home');
             } else {
+              for (post of data) {
+                post.time_ago = time_ago(parseInt(post.timestamp.N));
+              }
                 res.send(JSON.stringify(data));
             }
         });

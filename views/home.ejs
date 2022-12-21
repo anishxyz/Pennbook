@@ -314,7 +314,8 @@
                 }
 
                 for (let i = 0; i < coms.length; i++) {
-                    let item = document.createElement('div');
+                    let item = document.createElement('li');
+                    item.className = 'list-group-item';
                     // item.textContent = coms[i].creator.S + " : " + coms[i].content.S;
                     // list.appendChild(item);
 
@@ -543,8 +544,8 @@
                             <small class="text-muted" id="offtime">time</small>
                             <br>
                             <br>
-                            <div id="comlist" class="list-group">
-                            </div>
+                            <ul id="comlist" class="list-group">
+                            </ul>
                             <br>
                             <small>Comments:</small>
                             <br>

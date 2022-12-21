@@ -420,6 +420,10 @@ var get_posts_for_user = function(username, callback) {
       } else {
         posts = [];
         postsSet = new Set();
+        if (!data.Items || data.Items.length == 0) {
+          callback(null, []);
+          return;
+        }
         for (post_id of data.Items[0].posts.SS) {
           if (postsSet.has(post_id)) {
             continue;

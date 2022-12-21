@@ -290,7 +290,20 @@
             <ul class="list-group">
                 <%if (friends != null) { %>
                     <% friends.forEach(f => { %>
-                        <li class="list-group-item"><%- f -%></li>
+                        <li class="list-group-item">
+                            <%- f -%>
+                            <br>
+                            <% if (!currFriends.includes(f)) { %>
+                                <form method="post" action="/addfriend">
+                                    <input class="form-control me-2" type="hidden" id="friend" name="friend" value= "<%- f -%>">
+                                    <button class="btn btn-outline-success" type="submit">Add Friend</button>
+                                </form>
+                            <% } else { %>
+                                <button onclick="window.location.href='/user?friend=<%- f -%>';" class="btn btn-outline-success">
+                                    View Page
+                                </button>
+                            <% } %>
+                        </li>
                     <% }); %>
                 <% } %>
             </ul>

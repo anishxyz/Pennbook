@@ -157,7 +157,7 @@
     function updatePosts() {
         // don't fetch new content with comments offcanvas is open
         if (commentActive) {
-            setTimeout(updatePosts, 20000);
+            setTimeout(updatePosts, 10000);
             return;
         }
 
@@ -169,7 +169,7 @@
             $("#post_section").load(location.href + " #post_section>*", "");
         });
 
-        setTimeout(updatePosts, 20000);
+        setTimeout(updatePosts, 10000);
     }
 
     function updateFriends() {
@@ -279,6 +279,8 @@
 
     var postIdGlobal = null;
 
+    var prevCommentCount = 0;
+
     function getComments(postId, creator, content, time) {
         postIdGlobal = postId;
         console.log(postId);
@@ -310,6 +312,8 @@
         $(document).ready(() => {
 
             $.getJSON(link, function (coms) {
+                prevCommentCount = coms.length;
+
                 let list = document.getElementById('comlist');
 
                 while (list.firstChild) {
@@ -345,6 +349,8 @@
 
                     list.appendChild(item);
                 }
+
+                updateComments();
             });
 
             // $.ajax({
@@ -362,8 +368,62 @@
         });
     }
 
+    function updateComments() {
+        if (!commentActive) {
+            return;
+        }
+
+        $(document).ready(() => {
+
+            const link = `/getcomments?id=` + postIdGlobal;
+            $.getJSON(link, function (coms) {
+                let list = document.getElementById('comlist');
+
+                console.log(list.childNodes);
+                console.log(list.children);
+                for (let i = 0; i < prevCommentCount; i++) {
+                    list.children[i].children[0].children[1].textContent = coms[i].time_ago;
+                }
+                
+                for (let i = prevCommentCount; i < coms.length; i++) {
+                    let item = document.createElement('li');
+                    item.className = 'list-group-item';
+                    // item.textContent = coms[i].creator.S + " : " + coms[i].content.S;
+                    // list.appendChild(item);
+
+                    let headingDiv = document.createElement('div');
+                    headingDiv.className = 'd-flex w-100 justify-content-between';
+
+                    let heading = document.createElement('h5');
+                    heading.className = 'mb-1';
+                    heading.textContent = coms[i].creator.S;
+
+                    let time = document.createElement('small');
+                    time.textContent = coms[i].time_ago;
+
+                    headingDiv.appendChild(heading);
+                    headingDiv.appendChild(time);
+
+                    let content = document.createElement('p');
+                    content.className = 'mb-1';
+                    content.textContent = coms[i].content.S;
+
+                    item.appendChild(headingDiv);
+                    item.appendChild(content);
+
+                    list.appendChild(item);
+                }
+
+                prevCommentCount = coms.length;
+            });
+        });
+
+        setTimeout(updateComments, 10000);
+    }
+
     function addComment() {
         var comment = document.getElementById('comment').value;
+
 
         $(document).ready(() => {
             $.ajax({
@@ -375,11 +435,12 @@
                     cont: comment,
                 }),
             });
-            console.log("request made");
         });
 
         console.log('<%= currUser %>' + ": " + comment);
         console.log("adding comment");
+
+        prevCommentCount += 1;
 
         let list = document.getElementById('comlist');
         let item = document.createElement('li');

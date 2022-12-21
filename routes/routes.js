@@ -781,7 +781,7 @@ var addFriend = function(req, res) {
         console.log(err);
       } else {
         text = req.session.username + " is now friends with " + req.body.friend + "."
-        db.addPost(req.session.username, "friend_update", text, Date.now(), function(err, data) {
+        db.addPost(req.session.username, "friend_update", text, Date.now(), function(err, id) {
           if (err) {
             console.log(err);
           } else {

@@ -145,12 +145,24 @@
 
         console.log("GOT AN INVITE TO CHAT AS USER " + currUser + " FROM " + otherUsersString + " TO " + recipient);
 
-        if (currUser == recipient) {
+            if (currUser == recipient) {
+            
+        
+                modal.style.display = "block";
+                document.getElementById("usernameInput").value = otherUsersString + "," + recipient;
+                var otherPplString = "";
+
+                for (let i = 0; i < otherUsersString.split(",").length; i++) { 
+                    var user = otherUsersString.split(",")[i];
+                    if (currUser != user) {
+                        otherPplString += ", " + user;
+                    }
+                }
+                otherPplString = otherPplString.substring(1);
+                document.getElementById("chatInviteP").textContent = "You got an invite to join a chat with " + otherPplString + "!"
 
 
-            modal.style.display = "block";
-            document.getElementById("usernameInput").value = otherUsersString + "," + recipient;
-
+    
 
             // alert("Got an invite to chat from " + sender + ".")
 
@@ -347,12 +359,21 @@
 
 
     <div class="modal-content">
+<<<<<<< HEAD
+      <p id="chatInviteP">You got an invite to chat!</p>
+      <form method="post" action="/chat" class="msger-inputarea">
+        <input class="form-control me-2" type="hidden" id="usernameInput" name="usernameInput" value= "">
+        <input type="submit" name="submit" value="Enter Chat" class="btn btn-outline-success">
+        <button class="btn btn-outline-danger" type="submit" id="closeButton">Exit</button>
+      </form>
+=======
         <p>You got an invite to chat!</p>
         <form method="post" action="/chat" class="msger-inputarea">
             <input class="form-control me-2" type="hidden" id="usernameInput" name="usernameInput" value="">
             <input type="submit" name="submit" value="Enter Chat" class="btn btn-outline-success">
             <button class="btn btn-outline-danger" type="submit" id="closeButton">Exit</button>
         </form>
+>>>>>>> 6c16135fb0f378a3fbfe2f7fab46a1aac525d61a
     </div>
 
 </div>

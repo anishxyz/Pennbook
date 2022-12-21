@@ -317,7 +317,31 @@
 
                 for (let i = 0; i < coms.length; i++) {
                     let item = document.createElement('li');
-                    item.textContent = coms[i].creator.S + " : " + coms[i].content.S;
+                    item.className = 'list-group-item';
+                    // item.textContent = coms[i].creator.S + " : " + coms[i].content.S;
+                    // list.appendChild(item);
+
+
+                    let headingDiv = document.createElement('div');
+                    headingDiv.className = 'd-flex w-100 justify-content-between';
+
+                    let heading = document.createElement('h5');
+                    heading.className = 'mb-1';
+                    heading.textContent = coms[i].creator.S;
+
+                    let time = document.createElement('small');
+                    time.textContent = coms[i].timestamp.N;
+
+                    headingDiv.appendChild(heading);
+                    headingDiv.appendChild(time);
+
+                    let content = document.createElement('p');
+                    content.className = 'mb-1';
+                    content.textContent = coms[i].content.S;
+
+                    item.appendChild(headingDiv);
+                    item.appendChild(content);
+
                     list.appendChild(item);
                 }
             });
@@ -512,17 +536,33 @@
                     <!--                            Post Left Bar-->
                     <div class="offcanvas offcanvas-start" data-bs-scroll="true" tabindex="-1"
                          id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+
                         <div class="offcanvas-header">
-                            <h5 class="offcanvas-title" id="offposter">post</h5>
+<!--                            <h5 class="offcanvas-title" id="offposter">post</h5>-->
                             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
                                     aria-label="Close"></button>
                         </div>
                         <div class="offcanvas-body">
-                            <div id="offcontent">cont</div>
-                            <small class="text-muted" id="offtime">time</small>
+
+                            <div class="card mb-3 bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title" id="offposter">
+                                        <!--                                    <a href="/user?friend=<%- p.creator.S -%>"><%- p.creator.S -%></a>-->
+                                    </h5>
+                                    <p class="card-text" id="offcontent"></p>
+                                </div>
+                                <div class="card-footer">
+                                    <small class="text-muted" id="offtime"></small>
+                                </div>
+                            </div>
+<!--                            <div id="offcontent">cont</div>-->
+<!--                            <small class="text-muted" id="offtime">time</small>-->
+                            <br>
+                            <small>Comments:</small>
                             <br>
                             <ul id="comlist" class="list-group">
                             </ul>
+                            <br>
                             <br>
                             <form class="form-inline" onSubmit="return false">
                                 <div class="form-group">

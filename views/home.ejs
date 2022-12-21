@@ -312,19 +312,25 @@
         }
 
         console.log("post id: " + postId);
+
         $(document).ready(() => {
-            $.ajax({
-                url: "/getcomments",
-                type: "GET",
-                contentType: "application/json",
-                data: JSON.stringify({
-                    id: postId,
-                }),
-            }).done((data) => {
-                console.log("start data");
-                console.log(data);
-                console.log("end data");
+
+            $.getJSON('http://localhost:8080/getcomments?id=' + postId, function (coms) {
+                console.log(coms);
             });
+
+            // $.ajax({
+            //     url: "/getcomments",
+            //     type: "GET",
+            //     contentType: "application/json",
+            //     data: JSON.stringify({
+            //         id: postId,
+            //     }),
+            // }).done((data) => {
+            //     console.log("start data");
+            //     console.log(data);
+            //     console.log("end data");
+            // });
         });
 
         console.log(postId);

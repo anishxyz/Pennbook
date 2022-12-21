@@ -753,6 +753,23 @@ var addComment = function(req, res) {
 }
 
 var getComments = function(req, res) {
+    if (req.session.username == null) {
+        console.log("here");
+        res.redirect('/');
+    } else {
+        console.log("post id: " + req.query.id);
+        db.getCommentsForPost(req.query.id, function(err, data) {
+            if (err) {
+                console.log("here2");
+                console.log(err);
+                res.redirect('/home');
+            } else {
+                res.send(JSON.stringify(data));
+                console.log("acquiring comments");
+                console.log(JSON.stringify(data));
+            }
+        });
+    }
 }
 
 var addFriend = function(req, res) {

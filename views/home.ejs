@@ -299,6 +299,29 @@
             });
         }
 
+        console.log("post id: " + postId);
+        const link = `http://localhost:8080/getcomments?id=` + postId;
+        console.log(link);
+        $(document).ready(() => {
+
+            $.getJSON(link, function (coms) {
+                console.log(coms);
+            });
+
+            // $.ajax({
+            //     url: "/getcomments",
+            //     type: "GET",
+            //     contentType: "application/json",
+            //     data: JSON.stringify({
+            //         id: postId,
+            //     }),
+            // }).done((data) => {
+            //     console.log("start data");
+            //     console.log(data);
+            //     console.log("end data");
+            // });
+        });
+
         console.log(postId);
         console.log(creator);
         console.log(content);
@@ -483,6 +506,8 @@
                         <div class="offcanvas-body">
                             <div id="offcontent">cont</div>
                             <small class="text-muted" id="offtime">time</small>
+                            <br>
+                            <br>
                             <form class="form-inline" onSubmit="return false">
                                 <div class="form-group">
                                     <input type="text" class="form-control" id="comment"

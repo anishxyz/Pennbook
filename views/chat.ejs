@@ -210,7 +210,7 @@ body {
 
 
       <div class="modal-content">
-        <p>You got an invite to chat!</p>
+        <p id="chatInviteP">You got an invite to chat!</p>
         <form method="post" action="/chat" class="">
           <input class="form-control me-2" type="hidden" id="usernameInput" name="usernameInput" value= "">
           <input type="submit" name="submit" value="Enter Chat" class="btn btn-outline-success">
@@ -378,6 +378,16 @@ function checkFriend(){
     
           modal.style.display = "block";
           document.getElementById("usernameInput").value = otherUsersString + "," + recipient;
+          var otherPplString = "";
+
+                for (let i = 0; i < otherUsersString.split(",").length; i++) { 
+                    var user = otherUsersString.split(",")[i];
+                    if (currUser != user) {
+                        otherPplString += ", " + user;
+                    }
+                }
+                otherPplString = otherPplString.substring(1);
+                document.getElementById("chatInviteP").textContent = "You got an invite to join a chat with " + otherPplString + "!"
 
 
           // alert("Got an invite to chat from " + sender + ".")

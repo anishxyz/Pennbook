@@ -751,6 +751,7 @@ var getComments = function(req, res) {
         console.log("here");
         res.redirect('/');
     } else {
+        console.log("post id: " + req.body.id);
         db.getCommentsForPost(req.body.id, function(err, data) {
             if (err) {
                 console.log("here2");

@@ -62,6 +62,8 @@
   app.get('/visualizer', routes.get_visualizer);
   app.get('/updatevisualizer', routes.update_visualizer);
 
+  app.post('/addfriend', routes.add_friend);
+
    io.on('connection', (socket) => {
     socket.on('chat message', ({msg, sender, recipients}) => {
       console.log("RECIPIENT IN APP.JS " + recipients);

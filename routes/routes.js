@@ -537,7 +537,7 @@ var updatePosts = function(req, res) {
 var writeOnWall = function(req, res) {
   writer = req.session.username;
   other = req.query.username;
-  text = writer + " posted on " + other + ": " + req.body.text;
+  text = writer + " posted on " + other + "\'s wall: " + req.body.text;
   db.addPost(writer, "post", text, Date.now(), function(err, data) {
     if (err) {
       console.log(err);
@@ -651,7 +651,13 @@ var getSearchResults = function(req, res) {
         if (err) {
             console.log(err);
         } else {
-            res.render('search.ejs', {friends: data, currUser: req.session.username});
+            db.getFriends(req.session.username, function(err, data2) {
+              if (err) {
+                console.log(err);
+              } else {
+                res.render('search.ejs', {friends: data, currFriends: data2, currUser: req.session.username});
+              }
+            })
         }
     });
 }
@@ -749,6 +755,27 @@ var addComment = function(req, res) {
 var getComments = function(req, res) {
 }
 
+var addFriend = function(req, res) {
+  if (req.session.username == null) {
+    res.redirect('/');
+  } else {
+    db.addFriendship(req.session.username, req.body.friend, function(err, data) {
+      if (err) {
+        console.log(err);
+      } else {
+        text = req.session.username + " is now friends with " + req.body.friend + "."
+        db.addPost(req.session.username, "friend_update", text, Date.now(), function(err, data) {
+          if (err) {
+            console.log(err);
+          } else {
+            res.redirect('/');
+          }
+        });
+      }
+    });
+  }
+}
+
 var routes = {
     get_main: getMain,
     post_start_chat: startChat,
@@ -772,7 +799,8 @@ var routes = {
     update_visualizer: updateVisualizer,
     get_comments: getComments,
     add_comment: addComment,
-    write_on_wall: writeOnWall
+    write_on_wall: writeOnWall,
+    add_friend: addFriend
   };
   
   module.exports = routes;

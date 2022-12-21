@@ -115,7 +115,6 @@
     var currUser = "";
     var modal;
     var modalHiddenFormInput;
-    var closeButton;
     var commentActive = false;
 
     window.onload = function () {
@@ -124,10 +123,6 @@
         currUser = '<%= currUser %>';
         modal = document.getElementById("myModal");
         modalHiddenFormInput = document.getElementById("usernameInput");
-        closeButton = document.getElementById("closeButton");
-        closeButton.onclick = function () {
-            modal.style.display = "none";
-        }
         autocomplete(document.getElementById("searchinput"));
     }
 
@@ -166,7 +161,7 @@
             return;
         }
 
-        $.getJSON('http://localhost:8080/updateposts', function (newPosts) {
+        $.getJSON('/updateposts', function (newPosts) {
             if (newPosts == null || newPosts.length == 0) {
                 return;
             }
@@ -184,7 +179,7 @@
             return;
         }
 
-        $.getJSON('http://localhost:8080/updatefriends', function (newFriends) {
+        $.getJSON('/updatefriends', function (newFriends) {
             if (newFriends == null || newFriends.length == 0) {
                 return;
             }
@@ -310,7 +305,7 @@
         }
 
         console.log("post id: " + postId);
-        const link = `http://localhost:8080/getcomments?id=` + postId;
+        const link = `/getcomments?id=` + postId;
         console.log(link);
         $(document).ready(() => {
 
@@ -481,7 +476,6 @@ return time;
         <form method="post" action="/chat" class="msger-inputarea">
             <input class="form-control me-2" type="hidden" id="usernameInput" name="usernameInput" value="">
             <input type="submit" name="submit" value="Enter Chat" class="btn btn-outline-success">
-            <button class="btn btn-outline-danger" type="submit" id="closeButton">Exit</button>
         </form>
     </div>
 

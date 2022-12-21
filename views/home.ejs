@@ -306,6 +306,14 @@
 
             $.getJSON(link, function (coms) {
                 console.log(coms);
+
+                let list = document.getElementById('comlist');
+
+                for (let i = 0; i < coms.length; i++) {
+                    let item = document.createElement('li');
+                    item.textContent = coms[i].creator.S + " : " + coms[i].content.S;
+                    list.appendChild(item);
+                }
             });
 
             // $.ajax({
@@ -507,6 +515,8 @@
                             <div id="offcontent">cont</div>
                             <small class="text-muted" id="offtime">time</small>
                             <br>
+                            <ul id="comlist">
+                            </ul>
                             <br>
                             <form class="form-inline" onSubmit="return false">
                                 <div class="form-group">

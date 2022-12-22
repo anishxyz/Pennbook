@@ -1122,6 +1122,7 @@ var get_articles_for_user = function(username, callback) {
 }
 var like_article = function(username, article_id) {
     
+  console.log(username + " liked " + article_id);
   var params = {
     Item: {
       username: {

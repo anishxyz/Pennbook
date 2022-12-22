@@ -103,6 +103,15 @@
 <body>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script type="text/javascript">
+
+    //set user like for article
+    function likeArticle(article_id) {
+        $.ajax({
+                 url: "/likeArticle?id="+article_id,
+                 type: "GET",
+                 contentType: "application/json",
+             })
+    }
     var currUser = "";
         var modal;
         var modalHiddenFormInput;

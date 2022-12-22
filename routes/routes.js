@@ -25,28 +25,7 @@ var getEnterChat = function(req, res) {
  var startChat = async function(req, res) {
     var validAdditons = true;
 
-    // if (req.body.newUsernameInput != null) {
-    //   var friendsList = await db.getFriends(req.session.username, function(err, data) {
-    //     if (err) {
-    //       console.log(err);
-    //     }
-    //   })
-
-    //   var splitAdditions = req.body.newUsernameInput.split(",");
-
-    //   if (friendsList != null) {
-    //     for (let i = 0; i < splitAdditions.length; i++) {
-    //       if (!friendsList.includes(splitAdditions[i])) {
-    //         console.log(splitAdditions[i] + " NOT IN FRIENDS LIST")
-    //         validAdditons = false;
-    //       }
-    //     } 
-    //  } else {
-    //    // no friends? can't add anyone
-    //   validAdditons = false;
-    //  }
-    // }
-
+    // first get all friends to pass in
     db.getFriends(req.session.username, function(err, friendsList) {
       console.log("FRIENDS HERE", friendsList);
       var otherUsers = req.body.usernameInput + "," + req.body.newUsernameInput;
@@ -67,12 +46,12 @@ var getEnterChat = function(req, res) {
     var prevMessages = [];
     var chat_id = 0;
 
+    // check if chat exists for this group of users. If so, use those messages. If not, create a new chat. 
      db.getChatsForUsers(sorted_list_of_users, function(err, data) {    
         if (data == null) {
           // create a new chat
           db.createChat(sorted_list_of_users, function(err, data) {  
             if (err) {
-              console.log("CHAT CREATION FAILED");
             } else {
               chat_id = data;
               res.render('chat.ejs', {message: null, user: req.session.username, otherUsers: sorted_list_of_users.toString(), chat_id: chat_id, prevMessages: prevMessages.toString(), friends: friendsList.toString()});
@@ -80,30 +59,16 @@ var getEnterChat = function(req, res) {
           });
         } else {
           chat_id = data;
-          console.log("FETCHING THE CHAT WITH ID", chat_id);
           db.getChatMessages(chat_id, function(err, data) {
+            // append the name of the creator to each message, to be extracted later
             for (entry of data) {
               prevMessages.push(entry.creator.S + ": " + entry.message.S);
             }
-            console.log("PREV HERE ", prevMessages);
-            
             res.render('chat.ejs', {message: null, user: req.session.username, otherUsers: sorted_list_of_users.toString(), chat_id: chat_id, prevMessages: prevMessages.toString(), friends: friendsList.toString()});
           });
         }
     });
-    // get prev messages from db
     })
-
-    // var friendsList = await db.getFriends(req.session.username, function(err, data) {
-    //   if (err) {
-    //     console.log(err);
-    //   }
-    // })
-
-   
-
-    
-
  };
 
  var getCreatePost = function(req, res) {
@@ -168,11 +133,14 @@ var getEnterChat = function(req, res) {
  };
 
  var getEditAccPage = function(req, res) {
+
+  // if they tried to enter this page directly before logging in
   if (req.session.username == null) {
     res.render('signup.ejs', {message: null});
     return;
   }
 
+  // get the existing info and autopopulate
   db.getUserInfo(req.session.username, function(err, data) {  
    
     var message = null;
@@ -229,6 +197,7 @@ var saveAccChanges= async function(req, res) {
   var birthday = req.body.birthdayInput;
 
   posts = [];
+  // fetch new interests.
   var interests = [];
    for (const key in req.body) {
     if (key.charAt(0) == '_') {
@@ -259,7 +228,7 @@ var saveAccChanges= async function(req, res) {
 
     
 
-   // if all good, add 
+   // if all good, add each of the changes one after another
    db.updateUserInfo(username, "firstName", firstName, function(err, data) {   
       if ((err == null)) {
         db.updateUserInfo(username, "lastName", lastName, function(err, data) {   
@@ -554,8 +523,6 @@ var updatePosts = function(req, res) {
                 res.send(JSON.stringify(data2.concat(data)));
             }
           })
-          //console.log(JSON.stringify(data));
-          //res.send(JSON.stringify(data));
         }
       });
     }

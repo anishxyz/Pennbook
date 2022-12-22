@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LoadArticles.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">articles</a> &gt; <a href="index.source.html" class="el_package">g26</a> &gt; <span class="el_source">LoadArticles.java</span></div><h1>LoadArticles.java</h1><pre class="source lang-java linenums">package g26;
+import java.io.*;
+import java.lang.*;
+import java.util.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.spark.api.java.*;
+import org.apache.spark.sql.SparkSession;
+import com.google.gson.*;
+import com.amazonaws.auth.*;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.document.*;
+import com.amazonaws.services.dynamodbv2.model.*;
+import scala.Tuple2;
+import java.util.concurrent.ThreadLocalRandom;
+
+
+
+// import com.amazonaws.services.dynamodbv2.local.main.ServerRunner;
+// import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
+
+
+<span class="nc" id="L24">public final class LoadArticles {</span>
+    public static SparkSession spark;
+    public static JavaSparkContext context;
+<span class="nc" id="L27">    static Logger logger = LogManager.getLogger(LoadArticles.class);</span>
+
+    public static void load(String articlesPath) throws FileNotFoundException {
+<span class="nc" id="L30">        Scanner s = new Scanner(new File(articlesPath));</span>
+<span class="nc" id="L31">        Gson gson = new Gson();</span>
+<span class="nc" id="L32">        ArrayList&lt;Tuple2&lt;Long,Map&gt;&gt; arr = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L33">        Random random = new Random();</span>
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        while (s.hasNext()){</span>
+<span class="nc" id="L35">            arr.add(new Tuple2&lt;Long, Map&gt;(ThreadLocalRandom.current().nextLong(9223372036854775807L), gson.fromJson(s.nextLine(), Map.class)));</span>
+        }
+
+<span class="nc" id="L38">        JavaPairRDD&lt;Long, Map&gt; articles = context.parallelizePairs(arr, 5);//context.textFile(articlesPath).map(line -&gt; {Gson gson = new Gson(); gson.fromJson(line, Map.class}));</span>
+        // for (Object obj: file.take(5)) {
+        //     System.out.println(obj);
+        // }
+<span class="nc" id="L42">        articles.foreachPartition(iter -&gt; {</span>
+<span class="nc" id="L43">            ArrayList&lt;Item&gt; items = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L44">            DynamoDB curDB = getDynamoDB();</span>
+<span class="nc" id="L45">            int c = 0;</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">            while (iter.hasNext()) {</span>
+<span class="nc" id="L47">                c+= 1;</span>
+<span class="nc" id="L48">                Tuple2&lt;Long, Map&gt; tmp = iter.next();</span>
+<span class="nc" id="L49">                Map articleData = tmp._2;</span>
+<span class="nc" id="L50">                String[] dateSplit = ((String)articleData.get(&quot;date&quot;)).split(&quot;-&quot;);</span>
+<span class="nc" id="L51">                long year = (Long.parseLong(dateSplit[0])+5) * 10000L;</span>
+<span class="nc" id="L52">                long month = Long.parseLong(dateSplit[1]) * 100L;</span>
+<span class="nc" id="L53">                long day = Long.parseLong(dateSplit[2]);</span>
+
+<span class="nc" id="L55">                Item it = new Item().withPrimaryKey(&quot;article_id&quot;, tmp._1, &quot;date&quot;, year+month+day)</span>
+<span class="nc" id="L56">                                    .withString(&quot;link&quot;, (String) articleData.get(&quot;link&quot;))</span>
+<span class="nc" id="L57">                                    .withString(&quot;headline&quot;, (String) articleData.get(&quot;headline&quot;))</span>
+<span class="nc" id="L58">                                    .withString(&quot;category&quot;, (String) articleData.get(&quot;category&quot;))</span>
+<span class="nc" id="L59">                                    .withString(&quot;short_description&quot;, (String) articleData.get(&quot;short_description&quot;))</span>
+<span class="nc" id="L60">                                    .withString(&quot;authors&quot;, (String) articleData.get(&quot;authors&quot;));</span>
+<span class="nc" id="L61">                items.add(it);</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">                if (items.size() == 25) {</span>
+
+<span class="nc" id="L64">                    TableWriteItems twi = new TableWriteItems(&quot;articles&quot;).withItemsToPut(items);</span>
+<span class="nc" id="L65">                    BatchWriteItemOutcome o = curDB.batchWriteItem(twi);</span>
+                    
+                    //write any remaining unprocessed items
+                    Map&lt;String,List&lt;WriteRequest&gt;&gt; up;
+<span class="nc bnc" id="L69" title="All 2 branches missed.">                    while ((up=o.getUnprocessedItems()).size() != 0) {</span>
+<span class="nc" id="L70">                        o = curDB.batchWriteItemUnprocessed(up);</span>
+                    }
+<span class="nc" id="L72">                    items.clear();</span>
+<span class="nc" id="L73">                    logger.info(&quot;cur count &quot; + c);</span>
+
+                }
+<span class="nc" id="L76">            }</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">            if (items.size() &gt; 0) {</span>
+
+<span class="nc" id="L79">                TableWriteItems twi = new TableWriteItems(&quot;articles&quot;).withItemsToPut(items);</span>
+<span class="nc" id="L80">                BatchWriteItemOutcome o = curDB.batchWriteItem(twi);</span>
+                
+                //write any remaining unprocessed items
+                Map&lt;String,List&lt;WriteRequest&gt;&gt; up;
+<span class="nc bnc" id="L84" title="All 2 branches missed.">                while ((up=o.getUnprocessedItems()).size() != 0) {</span>
+<span class="nc" id="L85">                    o = curDB.batchWriteItemUnprocessed(up);</span>
+                }
+<span class="nc" id="L87">                items.clear();</span>
+            }
+<span class="nc" id="L89">        });</span>
+<span class="nc" id="L90">    }   </span>
+    public static void main(String[] args) throws FileNotFoundException {
+<span class="nc" id="L92">        spark = getSparkConnection();</span>
+<span class="nc" id="L93">		context = getSparkContext();</span>
+
+
+        // context.setLogLevel(&quot;ERROR&quot;);
+
+<span class="nc" id="L98">        LoadArticles.load(&quot;News_Category_Dataset_v3.json&quot;);</span>
+<span class="nc" id="L99">    }</span>
+
+    public static DynamoDB getDynamoDB() {
+<span class="nc" id="L102">        DynamoDB client = new DynamoDB(AmazonDynamoDBClientBuilder.standard()</span>
+<span class="nc" id="L103">        .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(</span>
+            &quot;https://dynamodb.us-east-1.amazonaws.com&quot;, &quot;us-east-1&quot;))
+<span class="nc" id="L105">        .withCredentials(new DefaultAWSCredentialsProviderChain())</span>
+<span class="nc" id="L106">        .build());</span>
+<span class="nc" id="L107">        return client;</span>
+    }
+
+    public static SparkSession getSparkConnection() {
+<span class="nc" id="L111">		return getSparkConnection(null);</span>
+	}
+	
+	public static synchronized SparkSession getSparkConnection(String host) {
+<span class="nc bnc" id="L115" title="All 2 branches missed.">		if (spark == null) {</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">			if (System.getenv(&quot;HADOOP_HOME&quot;) == null) {</span>
+<span class="nc" id="L117">				File workaround = new File(&quot;.&quot;);</span>
+				
+<span class="nc" id="L119">				System.setProperty(&quot;hadoop.home.dir&quot;, workaround.getAbsolutePath() + &quot;/native-libs&quot;);</span>
+			}
+			
+<span class="nc bnc" id="L122" title="All 4 branches missed.">			if (host != null &amp;&amp; !host.startsWith(&quot;spark://&quot;))</span>
+<span class="nc" id="L123">				host = &quot;spark://&quot; + host + &quot;:7077&quot;;</span>
+			
+		    spark = SparkSession
+<span class="nc" id="L126">		            .builder()</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">		            .appName(&quot;PennBook&quot;)</span>
+<span class="nc" id="L128">		            .master((host == null) ? &quot;local[*]&quot; : host)</span>
+<span class="nc" id="L129">		            .getOrCreate();</span>
+		}
+<span class="nc" id="L131">		spark.sparkContext().setLogLevel(&quot;ERROR&quot;);</span>
+<span class="nc" id="L132">	    return spark;</span>
+	}
+
+	public static synchronized JavaSparkContext getSparkContext() {
+<span class="nc bnc" id="L136" title="All 2 branches missed.">		if (context == null)</span>
+<span class="nc" id="L137">			context = new JavaSparkContext(getSparkConnection().sparkContext());</span>
+		
+<span class="nc" id="L139">		return context;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.4.201905082037</span></div></body></html>

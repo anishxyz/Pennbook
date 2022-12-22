@@ -103,6 +103,15 @@
 <body>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script type="text/javascript">
+
+    //set user like for article
+    function likeArticle(article_id) {
+        $.ajax({
+                 url: "/likeArticle?id="+article_id,
+                 type: "GET",
+                 contentType: "application/json",
+             })
+    }
     var currUser = "";
         var modal;
         var modalHiddenFormInput;
@@ -285,28 +294,52 @@
 </nav>
 <div class="container" style="padding: 25px 0;">
     <div class="row">
-        <div class="col-md-3" id="friend_section">
+        <div class="col-md-4" id="friend_section">
             <h3>Search Results</h3>
             <ul class="list-group">
                 <%if (friends != null) { %>
                     <% friends.forEach(f => { %>
                         <li class="list-group-item">
-                            <%- f -%>
-                            <br>
-                            <% if (!currFriends.includes(f)) { %>
-                                <form method="post" action="/addfriend">
-                                    <input class="form-control me-2" type="hidden" id="friend" name="friend" value= "<%- f -%>">
-                                    <button class="btn btn-outline-success" type="submit">Add Friend</button>
-                                </form>
-                            <% } else { %>
-                                <button onclick="window.location.href='/user?friend=<%- f -%>';" class="btn btn-outline-success">
-                                    View Page
-                                </button>
-                            <% } %>
+                            <div class="row">
+                                <div class="col align-self-start">
+                                    <%- f -%>
+                                </div>
+                                <div class="col align-self-end offset-md-5">
+                                    <% if (!currFriends.includes(f)) { %>
+                                        <form method="post" action="/addfriend">
+                                            <input class="form-control me-2" type="hidden" id="friend" name="friend" value= "<%- f -%>">
+                                            <button class="btn btn-outline-success btn-sm" type="submit">Add Friend</button>
+                                        </form>
+                                    <% } else { %>
+                                        <button onclick="window.location.href='/user?friend=<%- f -%>';" class="btn btn-outline-success btn-sm">
+                                            View Page
+                                        </button>
+                                    <% } %>
+                                </div>
+                            </div>
                         </li>
                     <% }); %>
                 <% } %>
             </ul>
+
+        </div>
+
+        <div class="col-md-8" id="article_section">
+            <%if (articles != null) { %>
+                <h3>Articles</h3>
+                <% articles.forEach(p => { %>
+                    <div class="card text-white mb-3 bg-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="<%- p.link.S -%>"><%- p.headline.S -%></a> by <%- typeof p.authors == 'undefined' ? "N/A" : p.authors.S -%> 
+                            </h5>
+
+                            <p class="card-text">Category: <%- p.category.S -%> - <%- typeof p.short_description == 'undefined' ? "No description" : p.short_description.S  -%></p>
+                            <button class="btn btn-primary" onclick="likeArticle('<%- p.article_id.N -%>')">Like</button>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } %>
         </div>
     </div>
 </div>

@@ -360,6 +360,7 @@ var get_users_status = function(users, callback) {
     });
 }
 
+// Gets affiliations for a list of users
 var get_users_affiliation = function(users, callback) {
   if (users == null || users.length == 0) {
     callback(null, []);
@@ -396,6 +397,7 @@ var get_users_affiliation = function(users, callback) {
     });
 }
 
+// Gets post_id's for a given user
 // Error 1 means issue while querying
 var get_posts_for_user = function(username, callback) {
   var params = {
@@ -545,6 +547,7 @@ var login_check = function(username, password, callback) {
     });
 }
 
+// Adds a post_id under a user
 var add_post_to_user = function(username, post_id, callback) {
   // First get original posts set
   params = {
@@ -782,6 +785,7 @@ var add_posts = function(posts, creator, callback) {
   });
 }
 
+// Adds a comment
 // Error 1 means issue while writing to database
 var add_comment = function(creator, post_id, timestamp, content, callback) {
   timestamp = timestamp.toString();
@@ -814,6 +818,7 @@ var add_comment = function(creator, post_id, timestamp, content, callback) {
   });
 }
 
+// Gets comments for a specific post_id
 // Error 1 means issue while querying database
 var get_comments_for_post = function(post_id, callback) {
   var params = {
@@ -834,9 +839,9 @@ var get_comments_for_post = function(post_id, callback) {
       comments = data.Items;
       comments.sort(function(a, b) {
         if (a.timestamp.N > b.timestamp.N) {
-          return -1;
-        } else {
           return 1;
+        } else {
+          return -1;
         }
       });
       callback(null, comments);
@@ -1011,6 +1016,7 @@ var get_chat_messages = function(chat_id, callback) {
   });
 }
 
+// Provides search results for a substring
 var search_for_user = function(sub, callback) {
   console.log("Here 1");
   var params = {
@@ -1059,7 +1065,131 @@ var search_for_user = function(sub, callback) {
   });
 };
 
+// Gets articles for a given user
+var get_articles_for_user = function(username, callback) {
 
+  console.log("username: " + username);
+  var params = {
+    KeyConditions: {
+      username: {
+        ComparisonOperator: 'EQ',
+        AttributeValueList: [ { S: username } ]
+      }
+    },
+    AttributesToGet: ["seen_articles"],
+    TableName: "user_feed_articles"
+  };
+  db.query(params, function(err, data) {
+    if (err) {
+      console.log(err);
+      callback("1", null);
+    } else {
+
+      queries = [];
+      //console.log(data.Items[0].seen_articles);
+      for (article of data.Items[0].seen_articles.L) {
+        let now = new Date();
+        let dateStr = now.getFullYear().toString() + now.getMonth().toString() + now.getDate().toString();
+        
+        queries.push({
+            N: article.N 
+        });
+      }
+
+      //console.log(queries);
+      if (queries.length == 0) {
+        callback(null, []);
+      }
+      else {
+         
+        var params1 = {
+          KeyConditions: {
+            article_id: {
+              ComparisonOperator: 'EQ',
+              AttributeValueList: [ queries[queries.length - 1] ]
+            }
+          },
+          AttributesToGet: ["article_id", "date", "short_description", "authors", "category", "headline", "link"],
+          TableName: "articles"
+        };
+        
+        db.query(params1, function(err, data) {
+            if(err) {
+                callback(err, null);
+            }
+            else {
+                callback(null, data.Items);
+            }
+        });
+      }
+        
+    }
+  });
+
+}
+
+// Likes an article for a user
+var like_article = function(username, article_id) {
+    
+  console.log(username + " liked " + article_id);
+  var params = {
+    Item: {
+      username: {
+        S: username
+      },
+      article_id: {
+        N: article_id
+      },
+    },
+    TableName: "user_liked_articles"
+  };
+  db.putItem(params, function(err, data) {
+    if (err) {
+        console.log(err);
+    }
+  });
+
+}
+var search_articles = async function(kws, callback) {
+    let promise_arr = kws.map(kw => {
+        const params = {
+            KeyConditionExpression: "keyword = :kw",
+            ExpressionAttributeValues: {
+                ":kw": { S: kw },
+            },
+            TableName: "invertedArticles",
+        };
+        return db.query(params).promise();
+    });
+    let data = await Promise.all(promise_arr);
+    let flattened = data.map(x => x.Items).flat().map(obj => obj.article_id.N);
+    let obj_tmp = {}
+    for (key of flattened) {
+        if(!(key in obj_tmp)) {
+            obj_tmp[key] = 0;
+        }
+        obj_tmp[key]++;
+    }
+    let pair_arr = Object.entries(obj_tmp);
+    pair_arr.sort((a, b) => (b[1]-a[1]));
+    let filtered = pair_arr.map(x => x[0]);
+    let promise_arr2 = filtered.map(article_id => {
+        const params = {
+            KeyConditionExpression: "article_id = :a_id",
+            ExpressionAttributeValues: {
+                ":a_id": { N: article_id },
+            },
+            TableName: "articles",
+        };
+        return db.query(params).promise();
+    });
+    let data2 = await Promise.all(promise_arr2);
+    let flattened2 = data2.map(x => x.Items).flat().slice(0, 5);
+    //console.log("printing data");
+    //console.log(flattened2);
+    callback(null, flattened2);
+
+}
 
 
 var database = { 
@@ -1085,7 +1215,10 @@ var database = {
   searchUser: search_for_user,
   getUsersAffiliation: get_users_affiliation,
   getCommentsForPost: get_comments_for_post,
-  addPostToUser: add_post_to_user
+  addPostToUser: add_post_to_user,
+  getArticlesForUser: get_articles_for_user,
+  likeArticle: like_article,
+  searchArticles: search_articles,
 };
   
 module.exports = database;

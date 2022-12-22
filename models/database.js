@@ -1079,6 +1079,7 @@ var get_articles_for_user = function(username, callback) {
     AttributesToGet: ["seen_articles"],
     TableName: "user_feed_articles"
   };
+  //query table to see which articles have already been recommended
   db.query(params, function(err, data) {
     if (err) {
       console.log(err);
@@ -1086,7 +1087,6 @@ var get_articles_for_user = function(username, callback) {
     } else {
 
       queries = [];
-      //console.log(data.Items[0].seen_articles);
       for (article of data.Items[0].seen_articles.L) {
         let now = new Date();
         let dateStr = now.getFullYear().toString() + now.getMonth().toString() + now.getDate().toString();
@@ -1096,8 +1096,8 @@ var get_articles_for_user = function(username, callback) {
         });
       }
 
-      //console.log(queries);
       if (queries.length == 0) {
+        //no articles for user yet
         callback(null, []);
       }
       else {
@@ -1106,6 +1106,7 @@ var get_articles_for_user = function(username, callback) {
           KeyConditions: {
             article_id: {
               ComparisonOperator: 'EQ',
+              //most recent article for user is the one we want to show them in their feed
               AttributeValueList: [ queries[queries.length - 1] ]
             }
           },
@@ -1143,6 +1144,7 @@ var like_article = function(username, article_id) {
     },
     TableName: "user_liked_articles"
   };
+    //add user liked article to table
   db.putItem(params, function(err, data) {
     if (err) {
         console.log(err);
@@ -1151,6 +1153,7 @@ var like_article = function(username, article_id) {
 
 }
 var search_articles = async function(kws, callback) {
+    //get articles based on keyword search
     let promise_arr = kws.map(kw => {
         const params = {
             KeyConditionExpression: "keyword = :kw",
@@ -1161,15 +1164,18 @@ var search_articles = async function(kws, callback) {
         };
         return db.query(params).promise();
     });
+    //get all article ids from each keyword stem searched for
     let data = await Promise.all(promise_arr);
     let flattened = data.map(x => x.Items).flat().map(obj => obj.article_id.N);
     let obj_tmp = {}
+    //count frequency of each article, sort by articles that match most keywords
     for (key of flattened) {
         if(!(key in obj_tmp)) {
             obj_tmp[key] = 0;
         }
         obj_tmp[key]++;
     }
+
     let pair_arr = Object.entries(obj_tmp);
     pair_arr.sort((a, b) => (b[1]-a[1]));
     let filtered = pair_arr.map(x => x[0]);
@@ -1183,6 +1189,7 @@ var search_articles = async function(kws, callback) {
         };
         return db.query(params).promise();
     });
+    //wait for article data to finish querying, then return top 5 for search
     let data2 = await Promise.all(promise_arr2);
     let flattened2 = data2.map(x => x.Items).flat().slice(0, 5);
     //console.log("printing data");

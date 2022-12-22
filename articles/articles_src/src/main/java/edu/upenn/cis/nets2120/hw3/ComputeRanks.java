@@ -50,8 +50,11 @@ public class ComputeRanks {
 	 * The basic logger
 	 */
 	static Logger logger = LogManager.getLogger(ComputeRanks.class);
+        //username to node
         HashMap<String, Node> utn;
+        //article id to node
         HashMap<String, Node> atn;
+        //identifier to node, for all nodes created
         HashMap<String, Node> idtn;
 
 	/**
@@ -97,9 +100,9 @@ public class ComputeRanks {
                 Iterator<Item> iterator = items.iterator();
                 HashMap<String, List<String>> user_categories = new HashMap<>();
                 HashSet<String> all_categories = new HashSet<>();
+                //need to first see the category interests for each user
                 while (iterator.hasNext()) {
                     Map<String, Object> map = iterator.next().asMap();
-                    //System.out.println(map);
                     ArrayList<String> categories = new ArrayList<>();
                     for (String s: (Set<String>) map.get("interests")) {
                         categories.add(s.toUpperCase());
@@ -107,22 +110,21 @@ public class ComputeRanks {
                     }
                     user_categories.put((String) map.get("username"), categories);
                 }
-                //System.out.println(user_categories);
 
+                //get articles from current day by querying secondary index
                 Table articles = dynamoDB.getTable("articles");
                 Index index = articles.getIndex("date-article_id-index2");
                 long curDate = Long.parseLong(java.time.LocalDate.now().toString().replace("-", ""));
-                //System.out.println(curDate);
                 QuerySpec spec = new QuerySpec()
                     .withKeyConditionExpression("#dateCol = :end")
                     .withValueMap(new ValueMap()
-                        //.withNumber(":start", (Long) 20221221L)
                         .withNumber(":end", curDate))
                     .withNameMap(new NameMap()
                             .with("#dateCol", "date"));
 
                 ItemCollection<QueryOutcome> items2 = index.query(spec);
 
+                //get category for each article, and all articles for each category
                 iterator = items2.iterator();
                 HashMap<String, String> article_category = new HashMap<>();
                 HashMap<String, Set<String>> category_to_articles = new HashMap<>();
@@ -140,6 +142,7 @@ public class ComputeRanks {
                     category_to_articles.get(cname).add(map.get("article_id").toString());
                 }
                 ArrayList<Node> nodes = new ArrayList<>();
+                //storing user nodes, category nodes, and article nodes separately to help create edges easily
                 HashMap<String, Node> username_to_node = new HashMap<>();
                 HashMap<String, Node> category_to_node = new HashMap<>();
                 HashMap<String, Node> article_to_node = new HashMap<>();
@@ -152,6 +155,7 @@ public class ComputeRanks {
                     username_to_node.put(e.getKey(), tmp);
                     int num_categories = e.getValue().size();
                     for (String cat : e.getValue()) {
+                        //create edge from user to each liked category
                         Node cat_node = category_to_node.get(cat);
                         Edge ed = new Edge(cat_node.identifier, 0.3 / num_categories); 
                         Edge ed2 = new Edge(tmp.identifier, 0.3 / num_categories); 
@@ -159,7 +163,8 @@ public class ComputeRanks {
                         cat_node.outgoing.add(ed2);
                     }
                 }
-
+                
+                //creating edges from article to category and vice versa
                 for (Map.Entry<String, String> e: article_category.entrySet()) {
                     Node tmp = new Node(e.getKey());
                     article_to_node.put(e.getKey(), tmp);
@@ -171,8 +176,9 @@ public class ComputeRanks {
                     tmp.outgoing.add(ed2);
                 }
 
+                //get user article likes for those edges
                 Table user_liked = dynamoDB.getTable("user_liked_articles");
-                items = user_liked.scan(null, // FilterExpression
+                items = user_liked.scan(null, 
                     "username,  article_id", // ProjectionExpression
                     null, null);
 
@@ -187,12 +193,10 @@ public class ComputeRanks {
                     String article_id = map.get("article_id").toString();
                     articles_for_user.get(user).add(article_id);
                 }
-                //System.out.println(username_to_node);
                 for (Map.Entry<String, Set<String>> e : articles_for_user.entrySet()) {
+                    //create edges from articles to users
                     int num_a = e.getValue().size(); 
-                    //System.out.println(e.getKey());
                     Node tmp = username_to_node.get(e.getKey());
-                    //System.out.println("tmp is |" + tmp.toString() + "|");
                     for (String s : e.getValue()) {
                         Node art = article_to_node.get(s);
                         if (art == null) {
@@ -212,6 +216,7 @@ public class ComputeRanks {
                 for (String s: user_categories.keySet()) {
                     friend_list.put(s, new HashSet<String>());
                 }
+                //create edges between users
                 iterator = items.iterator();
                 while (iterator.hasNext()) {
                     Map<String, Object> map = iterator.next().asMap();
@@ -227,6 +232,7 @@ public class ComputeRanks {
                         tmp.outgoing.add(new Edge(friend.identifier, 0.3 / num_f));
                     }
                 }
+                //add all nodes to global map for later reference
                 idtn = new HashMap<>();
                 for (Node n: username_to_node.values()) {
                     nodes.add(n);
@@ -235,7 +241,6 @@ public class ComputeRanks {
                 for (Node n: category_to_node.values()) {
                     nodes.add(n);
                     idtn.put(n.identifier, n);
-                    //System.out.println(n);
                 }
                 for (Node n: article_to_node.values()) {
                     for (Edge e : n.outgoing) {
@@ -244,18 +249,9 @@ public class ComputeRanks {
                     nodes.add(n);
                     idtn.put(n.identifier, n);
                 }
-                //File file = new File(filePath);
-                //Scanner fileReader = new Scanner(file);
-                ////prevent duplicate edges
-                //HashSet<Tuple2<Integer, Integer>> network = new HashSet<>();
-                ////this method is too slow for big dataset but works fine for twitter
-                //while(fileReader.hasNextLine()) {
-                //    String[] edge = fileReader.nextLine().split("\\s+");
-                //    network.add(new Tuple2<Integer, Integer>(Integer.parseInt(edge[1]), Integer.parseInt(edge[0])));
-                //}
-                //return context.parallelizePairs(new ArrayList<Tuple2<Integer, Integer>>(network));
                 utn = username_to_node;
                 atn = article_to_node;
+                //create incoming edges based on outgoing edges for easier implementation of adsorption algorithm
                 ArrayList<Tuple2<String, Node>> pairs = new ArrayList<>();
                 for (Node n: nodes) {
                     for (Edge e: n.outgoing) {
@@ -264,7 +260,7 @@ public class ComputeRanks {
                     }
                     pairs.add(new Tuple2<String, Node>(n.identifier, n));
                 }
-
+                //return RDD of all nodes with identifiers
                 return context.parallelizePairs(pairs);
             }
             catch (Exception e) {
@@ -288,7 +284,7 @@ public class ComputeRanks {
                 Map<String, Node> idtn_tmp = this.idtn;
                 for (int i = 0; i < 15; i++) {
                     final Map<String, Node> id_to_node = idtn_tmp;
-                    //System.out.println("iter " + i);
+                    //map network to next iteration of adsorption algorithm by using incoming edges to get weights
                     network = network.mapValues(node -> {
                         Node n = new Node(node.identifier);
                         for (Edge e: node.incoming) {
@@ -309,6 +305,7 @@ public class ComputeRanks {
                         return n;
 
                     });
+                    //update nodes in id to node map with their current weights
                     idtn_tmp = network.collectAsMap();
                 }
                 ArrayList<String> articles_list = new ArrayList<>(this.atn.keySet());
@@ -321,11 +318,12 @@ public class ComputeRanks {
                         final Node n2 = id_to_node.get(b);
                         return Double.compare(n2.weights.getOrDefault(s, 0.0),n.weights.getOrDefault(s, 0.0));
                     });
+                    //get top 10 articles for each user based on label weights
                     List<String> sliced = tmp_list.subList(0, Math.min(10, tmp_list.size()));
                     articles_for_user.put(s, sliced);
                 }
-                //System.out.println(articles_for_user);
                 Table feed = dynamoDB.getTable("user_feed_articles");
+                //add top articles for each user to dynamodb table, will be shown to user as needed
                 for (Map.Entry<String, List<String>> e : articles_for_user.entrySet()) {
                     ArrayList<BigDecimal> tmp_set = new ArrayList<>();
                     for (String s: e.getValue()) {
@@ -338,6 +336,7 @@ public class ComputeRanks {
                             .withList(":art2", new ArrayList<BigDecimal>())
                         )
                         .withReturnValues("ALL_NEW");
+                    //check if user has been recommended articles before, otherwise create attribute in table
                     UpdateItemOutcome outcome =  feed.updateItem(updateItemSpec);  
                     List<BigDecimal> data = outcome.getItem().getList("seen_articles");
                     System.out.println(data);
@@ -355,12 +354,8 @@ public class ComputeRanks {
                         );
                     outcome =  feed.updateItem(updateItemSpec2);  
 
-                    //System.out.println(outcome.getItem().getList("seen_articles"));
 
                 }
-                //network.values().foreach(node -> {
-                //    System.out.println(node);
-                //});
         }
 
 
@@ -395,6 +390,7 @@ public class ComputeRanks {
 
 }
 
+//need Node and Edge to be serializable for spark
 class Node implements Serializable{
     public String identifier;
     public ArrayList<Edge> outgoing;

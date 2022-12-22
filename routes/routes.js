@@ -111,7 +111,8 @@ var getEnterChat = function(req, res) {
    } else if (req.session.postFailed == true) {
     res.render('createpost.ejs', {message: 'Post failed. Please try again.', currUser: req.session.username});
    } else if (req.session.postSucceeded == true) {
-    res.render('createpost.ejs', {message: 'Post succeeded! Post again or go back home.', currUser: req.session.username});
+    req.session.postSucceeded = false;
+    res.redirect('/');
    } else {
     res.render('createpost.ejs', {message: null, currUser: req.session.username});
    }
@@ -537,22 +538,40 @@ var updatePosts = function(req, res) {
 var writeOnWall = function(req, res) {
   writer = req.session.username;
   other = req.query.username;
-  text = writer + " posted on " + other + ": " + req.body.text;
-  db.addPost(writer, "post", text, Date.now(), function(err, data) {
-    if (err) {
-      console.log(err);
-      res.redirect('/user?friend=' + other);
-    } else {
-      db.addPostToUser(other, data, function(err, data2) {
-        if (err) {
-          console.log(err);
-          res.redirect('/user?friend=' + other);
-        } else {
-          res.redirect('/user?friend=' + other);
-        }
-      })
-    }
-  })
+  if (writer != other) {
+    text = writer + " posted on " + other + "\'s wall: " + req.body.text;
+    db.addPost(writer, "post", text, Date.now(), function(err, data) {
+      if (err) {
+        console.log(err);
+        res.redirect('/user?friend=' + other);
+      } else {
+        db.addPostToUser(other, data, function(err, data2) {
+          if (err) {
+            console.log(err);
+            res.redirect('/user?friend=' + other);
+          } else {
+            res.redirect('/user?friend=' + other);
+          }
+        })
+      }
+    });
+  } else {
+    db.addPost(writer, "status_update", req.body.text, Date.now(), function(err, data) {
+      if (err) {
+        console.log(err);
+        res.redirect('/user?friend=' + other);
+      } else {
+        db.addPostToUser(other, data, function(err, data2) {
+          if (err) {
+            console.log(err);
+            res.redirect('/user?friend=' + other);
+          } else {
+            res.redirect('/user?friend=' + other);
+          }
+        })
+      }
+    });
+  }
 }
 
 // AJAX server side code to get online statuses for users
@@ -610,11 +629,16 @@ function time_ago(time) {
     token = 'ago',
     list_choice = 1;
 
+    if (seconds <= 2) {
+      return "Just now";
+    }
+
   if (seconds < 0) {
     seconds = Math.abs(seconds);
     token = 'from now';
     list_choice = 2;
   }
+
   var i = 0,
     format;
   while (format = time_formats[i++])
@@ -651,7 +675,13 @@ var getSearchResults = function(req, res) {
         if (err) {
             console.log(err);
         } else {
-            res.render('search.ejs', {friends: data, currUser: req.session.username});
+            db.getFriends(req.session.username, function(err, data2) {
+              if (err) {
+                console.log(err);
+              } else {
+                res.render('search.ejs', {friends: data, currFriends: data2, currUser: req.session.username});
+              }
+            })
         }
     });
 }
@@ -740,7 +770,7 @@ var addComment = function(req, res) {
             if (err) {
                 console.log("here2");
                 console.log(err);
-                res.redirect('/home');
+                res.redirect('/');
             }
         });
     }
@@ -751,20 +781,41 @@ var getComments = function(req, res) {
         console.log("here");
         res.redirect('/');
     } else {
-        console.log("post id: " + req.body.id);
         console.log("post id: " + req.query.id);
-        db.getCommentsForPost(req.body.id, function(err, data) {
+        db.getCommentsForPost(req.query.id, function(err, data) {
             if (err) {
                 console.log("here2");
                 console.log(err);
                 res.redirect('/home');
             } else {
+              for (post of data) {
+                post.time_ago = time_ago(parseInt(post.timestamp.N));
+              }
                 res.send(JSON.stringify(data));
-                console.log("acquiring comments");
-                console.log(JSON.stringify(data));
             }
         });
     }
+}
+
+var addFriend = function(req, res) {
+  if (req.session.username == null) {
+    res.redirect('/');
+  } else {
+    db.addFriendship(req.session.username, req.body.friend, function(err, data) {
+      if (err) {
+        console.log(err);
+      } else {
+        text = req.session.username + " is now friends with " + req.body.friend + "."
+        db.addPost(req.session.username, "friend_update", text, Date.now(), function(err, id) {
+          if (err) {
+            console.log(err);
+          } else {
+            res.redirect('/');
+          }
+        });
+      }
+    });
+  }
 }
 
 var routes = {
@@ -790,7 +841,8 @@ var routes = {
     update_visualizer: updateVisualizer,
     get_comments: getComments,
     add_comment: addComment,
-    write_on_wall: writeOnWall
+    write_on_wall: writeOnWall,
+    add_friend: addFriend
   };
   
   module.exports = routes;

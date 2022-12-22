@@ -115,7 +115,6 @@
     var currUser = "";
     var modal;
     var modalHiddenFormInput;
-    var closeButton;
     var commentActive = false;
 
     window.onload = function () {
@@ -124,10 +123,6 @@
         currUser = '<%= currUser %>';
         modal = document.getElementById("myModal");
         modalHiddenFormInput = document.getElementById("usernameInput");
-        closeButton = document.getElementById("closeButton");
-        closeButton.onclick = function () {
-            modal.style.display = "none";
-        }
         autocomplete(document.getElementById("searchinput"));
     }
 
@@ -145,24 +140,12 @@
 
         console.log("GOT AN INVITE TO CHAT AS USER " + currUser + " FROM " + otherUsersString + " TO " + recipient);
 
-            if (currUser == recipient) {
-            
-        
-                modal.style.display = "block";
-                document.getElementById("usernameInput").value = otherUsersString + "," + recipient;
-                var otherPplString = "";
-
-                for (let i = 0; i < otherUsersString.split(",").length; i++) { 
-                    var user = otherUsersString.split(",")[i];
-                    if (currUser != user) {
-                        otherPplString += ", " + user;
-                    }
-                }
-                otherPplString = otherPplString.substring(1);
-                document.getElementById("chatInviteP").textContent = "You got an invite to join a chat with " + otherPplString + "!"
+        if (currUser == recipient) {
 
 
-    
+            modal.style.display = "block";
+            document.getElementById("usernameInput").value = otherUsersString + "," + recipient;
+
 
             // alert("Got an invite to chat from " + sender + ".")
 
@@ -172,13 +155,15 @@
 
 
     function updatePosts() {
+        console.log("Updating posts");
+
         // don't fetch new content with comments offcanvas is open
         if (commentActive) {
-            setTimeout(updatePosts, 20000);
+            setTimeout(updatePosts, 10000);
             return;
         }
 
-        $.getJSON('http://localhost:8080/updateposts', function (newPosts) {
+        $.getJSON('/updateposts', function (newPosts) {
             if (newPosts == null || newPosts.length == 0) {
                 return;
             }
@@ -186,17 +171,19 @@
             $("#post_section").load(location.href + " #post_section>*", "");
         });
 
-        setTimeout(updatePosts, 20000);
+        setTimeout(updatePosts, 10000);
     }
 
     function updateFriends() {
+        console.log("Updating friends");
+
         // don't fetch new content with comments offcanvas is open
         if (commentActive) {
-            setTimeout(updateFriends, 20000);
+            setTimeout(updateFriends, 10000);
             return;
         }
 
-        $.getJSON('http://localhost:8080/updatefriends', function (newFriends) {
+        $.getJSON('/updatefriends', function (newFriends) {
             if (newFriends == null || newFriends.length == 0) {
                 return;
             }
@@ -204,12 +191,13 @@
             $("#friend_section").load(location.href + " #friend_section>*", "");
         });
 
-        setTimeout(updateFriends, 20000);
+        setTimeout(updateFriends, 10000);
     }
 
     $(document).ready(function () {
         updatePosts();
         updateFriends();
+        updateComments();
     });
 
     function autocomplete(inp) {
@@ -292,51 +280,160 @@
         });
     }
 
-    var myOffcanvas = null;
+    var postIdGlobal = null;
+
+    var prevCommentCount = 0;
 
     function getComments(postId, creator, content, time) {
+        postIdGlobal = postId;
         document.getElementById('offposter').textContent = "Post by " + creator;
-        console.log(content);
         document.getElementById('offcontent').textContent = content;
         document.getElementById('offtime').textContent = time;
 
         // disable AJAX reloads when comment offcanvas is open
         commentActive = true;
 
-        if (myOffcanvas == null) {
-            myOffcanvas = document.getElementById('offcanvasExample');
-            myOffcanvas.addEventListener('hidden.bs.offcanvas', event => {
-                console.log("hidden offcanvas");
-                commentActive = false;
-            });
-        }
+        $('#offcanvasExample').on('hidden.bs.offcanvas', function() {
+            console.log("hidden offcanvas");
+
+            commentActive = false;
+
+            let list = document.getElementById('comlist');
+
+            list.innerHTML = "";
+
+            $('#offcanvasExample').off('hidden.bs.offcanvas');
+        });
+
+        // if (myOffcanvas == null) {
+        //     myOffcanvas = document.getElementById('offcanvasExample');
+        //     myOffcanvas.addEventListener('hidden.bs.offcanvas', event => {
+        //         console.log("hidden offcanvas");
+        //         commentActive = false;
+
+        //         let list = document.getElementById('comlist');
+
+        //         list.innerHTML = "";
+        //     });
+        // }
 
         console.log("post id: " + postId);
+        const link = `/getcomments?id=` + postId;
+        console.log(link);
         $(document).ready(() => {
-            $.ajax({
-                url: "/getcomments",
-                type: "GET",
-                contentType: "application/json",
-                data: JSON.stringify({
-                    id: postId,
-                }),
-            }).done((data) => {
-                console.log("start data");
-                console.log(data);
-                console.log("end data");
+
+            $.getJSON(link, function (coms) {
+                prevCommentCount = coms.length;
+
+                let list = document.getElementById('comlist');
+
+                while (list.firstChild) {
+                    list.removeChild(list.firstChild);
+                }
+
+                for (let i = 0; i < coms.length; i++) {
+                    let item = document.createElement('li');
+                    item.className = 'list-group-item';
+                    // item.textContent = coms[i].creator.S + " : " + coms[i].content.S;
+                    // list.appendChild(item);
+
+
+                    let headingDiv = document.createElement('div');
+                    headingDiv.className = 'd-flex w-100 justify-content-between';
+
+                    let heading = document.createElement('h5');
+                    heading.className = 'mb-1';
+                    heading.textContent = coms[i].creator.S;
+
+                    let time = document.createElement('small');
+                    time.textContent = coms[i].time_ago;
+
+                    headingDiv.appendChild(heading);
+                    headingDiv.appendChild(time);
+
+                    let content = document.createElement('p');
+                    content.className = 'mb-1';
+                    content.textContent = coms[i].content.S;
+
+                    item.appendChild(headingDiv);
+                    item.appendChild(content);
+
+                    list.appendChild(item);
+                }
+            });
+
+            // $.ajax({
+            //     url: "/getcomments",
+            //     type: "GET",
+            //     contentType: "application/json",
+            //     data: JSON.stringify({
+            //         id: postId,
+            //     }),
+            // }).done((data) => {
+            //     console.log("start data");
+            //     console.log(data);
+            //     console.log("end data");
+            // });
+        });
+    }
+
+    function updateComments() {
+        if (!commentActive) {
+            setTimeout(updateComments, 10000);
+            return;
+        }
+
+        $(document).ready(() => {
+
+            const link = `/getcomments?id=` + postIdGlobal;
+            $.getJSON(link, function (coms) {
+                let list = document.getElementById('comlist');
+
+                console.log(list.childNodes);
+                console.log(list.children);
+                for (let i = 0; i < prevCommentCount; i++) {
+                    list.children[i].children[0].children[1].textContent = coms[i].time_ago;
+                }
+                
+                for (let i = prevCommentCount; i < coms.length; i++) {
+                    let item = document.createElement('li');
+                    item.className = 'list-group-item';
+                    // item.textContent = coms[i].creator.S + " : " + coms[i].content.S;
+                    // list.appendChild(item);
+
+                    let headingDiv = document.createElement('div');
+                    headingDiv.className = 'd-flex w-100 justify-content-between';
+
+                    let heading = document.createElement('h5');
+                    heading.className = 'mb-1';
+                    heading.textContent = coms[i].creator.S;
+
+                    let time = document.createElement('small');
+                    time.textContent = coms[i].time_ago;
+
+                    headingDiv.appendChild(heading);
+                    headingDiv.appendChild(time);
+
+                    let content = document.createElement('p');
+                    content.className = 'mb-1';
+                    content.textContent = coms[i].content.S;
+
+                    item.appendChild(headingDiv);
+                    item.appendChild(content);
+
+                    list.appendChild(item);
+                }
+
+                prevCommentCount = coms.length;
             });
         });
 
-        console.log(postId);
-        console.log(creator);
-        console.log(content);
-        console.log(time);
-        console.log("loading comments");
+        setTimeout(updateComments, 10000);
     }
 
-    function addComment(postId) {
+    function addComment() {
         var comment = document.getElementById('comment').value;
-        console.log(comment);
+
 
         $(document).ready(() => {
             $.ajax({
@@ -344,16 +441,103 @@
                 type: "POST",
                 contentType: "application/json",
                 data: JSON.stringify({
-                    id: postId,
+                    id: postIdGlobal,
                     cont: comment,
                 }),
             });
-            console.log("request made");
         });
 
         console.log('<%= currUser %>' + ": " + comment);
         console.log("adding comment");
+
+        prevCommentCount += 1;
+
+        let list = document.getElementById('comlist');
+        let item = document.createElement('li');
+        item.className = 'list-group-item';
+        // item.textContent = coms[i].creator.S + " : " + coms[i].content.S;
+        // list.appendChild(item);
+
+        let headingDiv = document.createElement('div');
+        headingDiv.className = 'd-flex w-100 justify-content-between';
+
+        let heading = document.createElement('h6');
+        heading.className = 'mb-1';
+        heading.textContent = currUser;
+
+        let time = document.createElement('small');
+        time.textContent = time_ago(Date.now());
+
+        headingDiv.appendChild(heading);
+        headingDiv.appendChild(time);
+
+        let content = document.createElement('p');
+        content.className = 'mb-1';
+        content.textContent = comment;
+
+        item.appendChild(headingDiv);
+        item.appendChild(content);
+
+        list.appendChild(item);
+
+        document.getElementById('comment').value = "";
     }
+
+    // Helper function to get relative time
+function time_ago(time) {
+
+switch (typeof time) {
+  case 'number':
+    break;
+  case 'string':
+    time = +new Date(time);
+    break;
+  case 'object':
+    if (time.constructor === Date) time = time.getTime();
+    break;
+  default:
+    time = +new Date();
+}
+var time_formats = [
+  [60, 'seconds', 1], // 60
+  [120, '1 minute ago', '1 minute from now'], // 60*2
+  [3600, 'minutes', 60], // 60*60, 60
+  [7200, '1 hour ago', '1 hour from now'], // 60*60*2
+  [86400, 'hours', 3600], // 60*60*24, 60*60
+  [172800, 'Yesterday', 'Tomorrow'], // 60*60*24*2
+  [604800, 'days', 86400], // 60*60*24*7, 60*60*24
+  [1209600, 'Last week', 'Next week'], // 60*60*24*7*4*2
+  [2419200, 'weeks', 604800], // 60*60*24*7*4, 60*60*24*7
+  [4838400, 'Last month', 'Next month'], // 60*60*24*7*4*2
+  [29030400, 'months', 2419200], // 60*60*24*7*4*12, 60*60*24*7*4
+  [58060800, 'Last year', 'Next year'], // 60*60*24*7*4*12*2
+  [2903040000, 'years', 29030400], // 60*60*24*7*4*12*100, 60*60*24*7*4*12
+  [5806080000, 'Last century', 'Next century'], // 60*60*24*7*4*12*100*2
+  [58060800000, 'centuries', 2903040000] // 60*60*24*7*4*12*100*20, 60*60*24*7*4*12*100
+];
+var seconds = (+new Date() - time) / 1000,
+  token = 'ago',
+  list_choice = 1;
+
+  if (seconds <= 2) {
+    return "Just now";
+  }
+if (seconds < 0) {
+  seconds = Math.abs(seconds);
+  token = 'from now';
+  list_choice = 2;
+}
+var i = 0,
+  format;
+while (format = time_formats[i++])
+  if (seconds < format[0]) {
+    if (typeof format[2] == 'string')
+      return format[list_choice];
+    else
+      return Math.floor(seconds / format[2]) + ' ' + format[1] + ' ' + token;
+  }
+return time;
+}
 </script>
 <div id="myModal" class="modal">
 
@@ -425,7 +609,7 @@
                                 <br>
                                 <form class="d-flex justify-content-center" method="post" action="/chat" style="padding: 5px 10px;">
                                     <input class="form-control me-2" type="hidden" id="usernameInput" name="usernameInput" value= "<%- f.username.S -%>">
-                                    <button class="btn btn-outline-success" type="submit">Enter Chat</button>
+                                    <button class="btn btn-outline-success btn-sm" type="submit">Enter Chat</button>
                                 </form>
                             
         
@@ -452,9 +636,9 @@
                                 <a href="/user?friend=<%- p.creator.S -%>"><%- p.creator.S -%></a>
                             </h5>
                             <p class="card-text"><%- p.content.S -%></p>
-                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="offcanvas"
+                            <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="offcanvas"
                                     data-bs-target="#offcanvasExample" aria-controls="offcanvasExample"
-                                    onclick="getComments('<%- p.post_id.S -%>', '<%- p.creator.S -%>', '<%- p.content.S -%>', '<%- p.time_ago -%>')">
+                                    onclick="getComments('<%- p.post_id.S -%>', '<%- p.creator.S -%>', '<%- p.content.S.replace(/'/g, "\\'") -%>', '<%- p.time_ago -%>')">
                                 View Comments
                             </button>
                         </div>
@@ -470,9 +654,9 @@
                                 <a href="/user?friend=<%- p.creator.S -%>"><%- p.creator.S -%></a>
                             </h5>
                             <p class="card-text"><%- p.content.S -%></p>
-                            <button class="btn btn-outline-dark" type="button" data-bs-toggle="offcanvas"
+                            <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="offcanvas"
                                     data-bs-target="#offcanvasExample" aria-controls="offcanvasExample"
-                                    onclick="getComments('<%- p.post_id.S -%>', '<%- p.creator.S -%>', '<%- p.content.S -%>', '<%- p.time_ago -%>')">
+                                    onclick="getComments('<%- p.post_id.S -%>', '<%- p.creator.S -%>', '<%- p.content.S.replace(/'/g, "\\'") -%>', '<%- p.time_ago -%>')">
                                 View Comments
                             </button>
                         </div>
@@ -488,9 +672,9 @@
                                 <a href="/user?friend=<%- p.creator.S -%>"><%- p.creator.S -%></a>
                             </h5>
                             <p class="card-text"><%- p.content.S -%></p>
-                            <button class="btn btn-outline-light" type="button" data-bs-toggle="offcanvas"
+                            <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="offcanvas"
                                     data-bs-target="#offcanvasExample" aria-controls="offcanvasExample"
-                                    onclick="getComments('<%- p.post_id.S -%>', '<%- p.creator.S -%>', '<%- p.content.S -%>', '<%- p.time_ago -%>')">
+                                    onclick="getComments('<%- p.post_id.S -%>', '<%- p.creator.S -%>', '<%- p.content.S.replace(/'/g, "\\'") -%>', '<%- p.time_ago -%>')">
                                 View Comments
                             </button>
                         </div>
@@ -502,14 +686,32 @@
                     <!--                            Post Left Bar-->
                     <div class="offcanvas offcanvas-start" data-bs-scroll="true" tabindex="-1"
                          id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+
                         <div class="offcanvas-header">
-                            <h5 class="offcanvas-title" id="offposter">post</h5>
+<!--                            <h5 class="offcanvas-title" id="offposter">post</h5>-->
                             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
                                     aria-label="Close"></button>
                         </div>
                         <div class="offcanvas-body">
-                            <div id="offcontent">cont</div>
-                            <small class="text-muted" id="offtime">time</small>
+
+                            <div class="card mb-3 bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title" id="offposter">
+                                        <!--                                    <a href="/user?friend=<%- p.creator.S -%>"><%- p.creator.S -%></a>-->
+                                    </h5>
+                                    <p class="card-text" id="offcontent"></p>
+                                </div>
+                                <div class="card-footer">
+                                    <small class="text-muted" id="offtime"></small>
+                                </div>
+                            </div>
+<!--                            <div id="offcontent">cont</div>-->
+<!--                            <small class="text-muted" id="offtime">time</small>-->
+                            <br>
+                            <small>Comments:</small>
+                            <br>
+                            <ul id="comlist" class="list-group">
+                            </ul>
                             <br>
                             <br>
                             <form class="form-inline" onSubmit="return false">
@@ -518,7 +720,7 @@
                                            placeholder="Add Comment">
                                 </div>
                                 <button type="submit" class="btn btn-primary"
-                                        onclick="addComment('<%- p.post_id.S -%>')">+
+                                        onclick="addComment()">+
                                 </button>
                             </form>
                         </div>

@@ -62,6 +62,8 @@
   app.get('/visualizer', routes.get_visualizer);
   app.get('/updatevisualizer', routes.update_visualizer);
 
+  app.post('/addfriend', routes.add_friend);
+
    io.on('connection', (socket) => {
     socket.on('chat message', ({msg, sender, recipients}) => {
       console.log("RECIPIENT IN APP.JS " + recipients);
@@ -84,8 +86,14 @@
    
    /* Run the server */
 
-   server.listen(8080, () => {
-    console.log('listening on *:8080');
+  //  server.listen(8080, () => {
+  //   console.log('listening on *:8080');
+  //  });
+
+  //  console.log('Server running on port 8080. Now open http://localhost:8080/ in your browser!');
+
+  server.listen(80, () => {
+    console.log('listening on *:80');
    });
 
-   console.log('Server running on port 8080. Now open http://localhost:8080/ in your browser!');
+   console.log('Server running on port 80. Now open http://localhost:8080/ in your browser!');

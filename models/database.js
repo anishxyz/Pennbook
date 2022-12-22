@@ -420,6 +420,10 @@ var get_posts_for_user = function(username, callback) {
       } else {
         posts = [];
         postsSet = new Set();
+        if (!data.Items || data.Items.length == 0) {
+          callback(null, []);
+          return;
+        }
         for (post_id of data.Items[0].posts.SS) {
           if (postsSet.has(post_id)) {
             continue;
@@ -497,7 +501,7 @@ var get_posts = function(post_id_list, callback) {
       });
       
       for (item of res) {
-        if (item.content.S.includes("posted on")) {
+        if (item.content.S.includes("posted on") && item.content.S.includes("'s wall.")) {
           item.creator.S = item.content.S.split(" ")[0];
         }
       }
@@ -830,9 +834,9 @@ var get_comments_for_post = function(post_id, callback) {
       comments = data.Items;
       comments.sort(function(a, b) {
         if (a.timestamp.N > b.timestamp.N) {
-          return -1;
-        } else {
           return 1;
+        } else {
+          return -1;
         }
       });
       callback(null, comments);

@@ -538,22 +538,40 @@ var updatePosts = function(req, res) {
 var writeOnWall = function(req, res) {
   writer = req.session.username;
   other = req.query.username;
-  text = writer + " posted on " + other + "\'s wall: " + req.body.text;
-  db.addPost(writer, "post", text, Date.now(), function(err, data) {
-    if (err) {
-      console.log(err);
-      res.redirect('/user?friend=' + other);
-    } else {
-      db.addPostToUser(other, data, function(err, data2) {
-        if (err) {
-          console.log(err);
-          res.redirect('/user?friend=' + other);
-        } else {
-          res.redirect('/user?friend=' + other);
-        }
-      })
-    }
-  })
+  if (writer != other) {
+    text = writer + " posted on " + other + "\'s wall: " + req.body.text;
+    db.addPost(writer, "post", text, Date.now(), function(err, data) {
+      if (err) {
+        console.log(err);
+        res.redirect('/user?friend=' + other);
+      } else {
+        db.addPostToUser(other, data, function(err, data2) {
+          if (err) {
+            console.log(err);
+            res.redirect('/user?friend=' + other);
+          } else {
+            res.redirect('/user?friend=' + other);
+          }
+        })
+      }
+    });
+  } else {
+    db.addPost(writer, "status_update", req.body.text, Date.now(), function(err, data) {
+      if (err) {
+        console.log(err);
+        res.redirect('/user?friend=' + other);
+      } else {
+        db.addPostToUser(other, data, function(err, data2) {
+          if (err) {
+            console.log(err);
+            res.redirect('/user?friend=' + other);
+          } else {
+            res.redirect('/user?friend=' + other);
+          }
+        })
+      }
+    });
+  }
 }
 
 // AJAX server side code to get online statuses for users

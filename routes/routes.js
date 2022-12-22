@@ -349,7 +349,13 @@ var saveAccChanges= async function(req, res) {
   }
   }
 
-    var getUserPage = function(req, res) {
+/**
+ * Makes calls to generate the user page (my wall or friends)
+ *
+ * @param req username is in url (query friend)
+ * @param res
+ */
+var getUserPage = function(req, res) {
         if(req.session.username == null) {
             res.redirect('signup.ejs');
             return;
@@ -395,6 +401,13 @@ var saveAccChanges= async function(req, res) {
         });
     }
 
+
+/**
+ * makes all necesary db calls to generate the home page
+ *
+ * @param req
+ * @param res
+ */
 var getHome = function(req, res) {
      if(req.session.username == null) {
         res.redirect('signup.ejs');
@@ -697,26 +710,39 @@ var addChatMessage = function(req, res) {
     })
 };
 
+/**
+ * Gets search results for search page
+ *
+ * Returns list of users and articles relavant to search query
+ *
+ * @param req
+ * @param res
+ * @returns {Promise<void>}
+ */
 var getSearchResults = async function(req, res) {
     var q = req.query.query;
     console.log(q);
 
+    // first search users matching
     db.searchUser(q, function(err, data) {
         if (err) {
             console.log(err);
         } else {
+
+            // mark users already friended
             db.getFriends(req.session.username, function(err, data2) {
               if (err) {
                 console.log(err);
               } else {
                 let kws = q.split(" ").map(x => stemmer(x.toLowerCase()));
+
+                // add articles to results
                 db.searchArticles(kws, function(err, dataArticles) {
                     if (err) {
                         console.log(err);
                         res.render('search.ejs', {friends: data, currFriends: data2, currUser: req.session.username});
                     }
                     else {
-
                         res.render('search.ejs', {friends: data, currFriends: data2, currUser: req.session.username, articles: dataArticles});
                     }
 
@@ -727,10 +753,20 @@ var getSearchResults = async function(req, res) {
     });
 }
 
+/**
+ *
+ * Used to update search results in real-time viewer
+ *
+ * Endpoint of ajax call
+ *
+ * @param req
+ * @param res
+ */
 var updateSearchResults = function(req, res) {
     var q = req.query.query;
     console.log(q);
 
+    // get relevant users and return them back
     db.searchUser(q, function(err, data) {
         if (err) {
             console.log(err);
@@ -799,6 +835,14 @@ var updateVisualizer = function(req, res) {
   })
 }
 
+/**
+ * Adds comment to db
+ *
+ * Endpoint of ajax call to add comment
+ *
+ * @param req contains id in body
+ * @param res
+ */
 var addComment = function(req, res) {
     if (req.session.username == null) {
         console.log("here");
@@ -807,6 +851,8 @@ var addComment = function(req, res) {
         console.log("adding comment to db");
         console.log(req.body.cont);
         console.log(req.body.id);
+
+        // db call to add comment, uses curr timestamp
         db.addComment(req.session.username, req.body.id, Date.now(), req.body.cont, function(err, data) {
             if (err) {
                 console.log("here2");
@@ -817,12 +863,20 @@ var addComment = function(req, res) {
     }
 }
 
+/**
+ * Returns comments from given post id
+ *
+ * @param req contains id in url (query)
+ * @param res
+ */
 var getComments = function(req, res) {
     if (req.session.username == null) {
         console.log("here");
         res.redirect('/');
     } else {
         console.log("post id: " + req.query.id);
+
+        // query db for comments from postid
         db.getCommentsForPost(req.query.id, function(err, data) {
             if (err) {
                 console.log("here2");

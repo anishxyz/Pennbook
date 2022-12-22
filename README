@@ -31,7 +31,7 @@ Declaration: All of the code submitted was written by us.
 
 Instructions: update AWS credentials to those of G26, install and use node version 18.2.1, run 'npm install', run 'node app.js'
 Libraries (you may need to install these separately):
-crypto.js (https://www.npmjs.com/package/crypto-js) - for hasing passwords
+crypto-js (https://www.npmjs.com/package/crypto-js) - for hasing passwords
 uuid (https://www.npmjs.com/package/uuid) - for generating random id's
 vis-network (https://www.npmjs.com/package/vis-network) - for visualizer
 stemmer (https://www.npmjs.com/package/stemmer) - for news search
@@ -40,3 +40,5 @@ socket.IO (https://socket.io) - for chat
 Instructions for articles:
 The article loader can be run by doing "mvn exec:java@load" while in the articles folder. Currently, the loader for the inverted article keyword table must be run manually, by switching the line that runs LoadArticles.load to LoadArticles.loadInverted.
 In addition, the code for generating the adsorption graph and uploading articles by weight for each user is run by doing "mvn exec:java@local" while in the articles_src folder. This was run on an hourly schedule using a cron job with the timing "0 * * * *" for running the previous command.
+
+Instructions for DynamoDB: Need the tables indictaed in tables.png

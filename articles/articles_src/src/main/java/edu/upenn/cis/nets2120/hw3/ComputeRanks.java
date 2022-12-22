@@ -327,7 +327,7 @@ public class ComputeRanks {
                 //System.out.println(articles_for_user);
                 Table feed = dynamoDB.getTable("user_feed_articles");
                 for (Map.Entry<String, List<String>> e : articles_for_user.entrySet()) {
-                    LinkedHashSet<BigDecimal> tmp_set = new LinkedHashSet<>();
+                    ArrayList<BigDecimal> tmp_set = new ArrayList<>();
                     for (String s: e.getValue()) {
                         tmp_set.add(new BigDecimal(Long.parseLong(s)));
                     }
@@ -336,8 +336,27 @@ public class ComputeRanks {
                         .withValueMap(
                             new ValueMap().withList(":art", tmp_set)
                             .withList(":art2", new ArrayList<BigDecimal>())
-                        );
+                        )
+                        .withReturnValues("ALL_NEW");
                     UpdateItemOutcome outcome =  feed.updateItem(updateItemSpec);  
+                    List<BigDecimal> data = outcome.getItem().getList("seen_articles");
+                    System.out.println(data);
+                    ArrayList<BigDecimal> updated_articles;
+                    for (BigDecimal bd : tmp_set) {
+                        if (!data.contains(bd)) {
+                            data.add(bd);
+                            break;
+                        }
+                    }
+                    UpdateItemSpec updateItemSpec2 = new UpdateItemSpec().withPrimaryKey("username", e.getKey())
+                        .withUpdateExpression("set seen_articles = :art")
+                        .withValueMap(
+                            new ValueMap().withList(":art", data)
+                        );
+                    outcome =  feed.updateItem(updateItemSpec2);  
+
+                    //System.out.println(outcome.getItem().getList("seen_articles"));
+
                 }
                 //network.values().foreach(node -> {
                 //    System.out.println(node);

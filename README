@@ -16,6 +16,7 @@ User pages with all posts of that user, ability to post on this user's wall, and
 Edit account page that auto-posts updates to affiliation and news interests
 Search bar that asyncronously updates search suggestions
 Search results that shows all users that match the search and news articles that match the search
+Articles showing in the feed of each user that is updated when the adsorption graph is updated
 Ability to invite friends who are online to chats via the home page
 Ability to create group chats and persistent chats
 
@@ -35,3 +36,7 @@ uuid (https://www.npmjs.com/package/uuid) - for generating random id's
 vis-network (https://www.npmjs.com/package/vis-network) - for visualizer
 stemmer (https://www.npmjs.com/package/stemmer) - for news search
 socket.IO (https://socket.io) - for chat
+
+Instructions for articles:
+The article loader can be run by doing "mvn exec:java@load" while in the articles folder. Currently, the loader for the inverted article keyword table must be run manually, by switching the line that runs LoadArticles.load to LoadArticles.loadInverted.
+In addition, the code for generating the adsorption graph and uploading articles by weight for each user is run by doing "mvn exec:java@local" while in the articles_src folder. This was run on an hourly schedule using a cron job with the timing "0 * * * *" for running the previous command.

@@ -1154,7 +1154,16 @@ var search_articles = async function(kws, callback) {
     });
     let data = await Promise.all(promise_arr);
     let flattened = data.map(x => x.Items).flat().map(obj => obj.article_id.N);
-    let filtered = flattened.filter((v,i) => flattened.indexOf(v) == i);
+    let obj_tmp = {}
+    for (key of flattened) {
+        if(!(key in obj_tmp)) {
+            obj_tmp[key] = 0;
+        }
+        obj_tmp[key]++;
+    }
+    let pair_arr = Object.entries(obj_tmp);
+    pair_arr.sort((a, b) => (b[1]-a[1]));
+    let filtered = pair_arr.map(x => x[0]);
     let promise_arr2 = filtered.map(article_id => {
         const params = {
             KeyConditionExpression: "article_id = :a_id",

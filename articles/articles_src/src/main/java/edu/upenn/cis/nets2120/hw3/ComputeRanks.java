@@ -1,7 +1,9 @@
 package edu.upenn.cis.nets2120.hw3;
 import java.time.LocalDateTime;
 import java.io.IOException;
+import java.io.*;
 import java.lang.Math;
+import java.math.BigDecimal;
 import java.io.File;
 import java.util.Scanner;
 import java.util.*;
@@ -44,37 +46,13 @@ import edu.upenn.cis.nets2120.storage.SparkConnector;
 public class ComputeRanks {
         static AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
         static DynamoDB dynamoDB = new DynamoDB(client);
-        private class Node {
-            public String identifier;
-            public ArrayList<Edge> outgoing;
-            public HashMap<String, Double> weights;
-            public HashMap<String, Double> newWeights;
-            public Node(String id) {
-                weights = new HashMap<>();
-                newWeights = new HashMap<>();
-                outgoing = new ArrayList<>();
-                identifier = id;
-            }
-            public String toString() {
-                
-                return "id: " + identifier + " edges: " + outgoing.toString();
-            }
-        }
-        private class Edge {
-            public Node n;
-            public double weight;
-            public Edge(Node node, double w) {
-                n = node;
-                weight = w;
-            }
-            public String toString() {
-                return "(" + n.identifier + ", " + weight + ")";
-            }
-        }
 	/**
 	 * The basic logger
 	 */
 	static Logger logger = LogManager.getLogger(ComputeRanks.class);
+        HashMap<String, Node> utn;
+        HashMap<String, Node> atn;
+        HashMap<String, Node> idtn;
 
 	/**
 	 * Connection to Apache Spark
@@ -83,9 +61,6 @@ public class ComputeRanks {
 	
 	JavaSparkContext context;
 
-        int imax = 25;
-        double dmax = 30.0;
-        boolean debug = false;
 	
 	public ComputeRanks() {
 		System.setProperty("file.encoding", "UTF-8");
@@ -112,7 +87,7 @@ public class ComputeRanks {
 	 * @param filePath
 	 * @return JavaPairRDD: (followed: int, follower: int)
 	 */
-        JavaRDD<Node> getNetwork() {
+        JavaPairRDD<String, Node> getNetwork() {
 
             try {        
                 Table usertable = dynamoDB.getTable("users");
@@ -178,8 +153,8 @@ public class ComputeRanks {
                     int num_categories = e.getValue().size();
                     for (String cat : e.getValue()) {
                         Node cat_node = category_to_node.get(cat);
-                        Edge ed = new Edge(cat_node, 0.3 / num_categories); 
-                        Edge ed2 = new Edge(tmp, 0.3 / num_categories); 
+                        Edge ed = new Edge(cat_node.identifier, 0.3 / num_categories); 
+                        Edge ed2 = new Edge(tmp.identifier, 0.3 / num_categories); 
                         tmp.outgoing.add(ed);
                         cat_node.outgoing.add(ed2);
                     }
@@ -190,8 +165,8 @@ public class ComputeRanks {
                     article_to_node.put(e.getKey(), tmp);
                     Node cat_node = category_to_node.get(e.getValue());
                     int a_in_c = category_to_articles.get(e.getValue()).size();
-                    Edge ed = new Edge(tmp, 1.0 / a_in_c);
-                    Edge ed2 = new Edge(cat_node, 1.0);
+                    Edge ed = new Edge(tmp.identifier, 1.0 / a_in_c);
+                    Edge ed2 = new Edge(cat_node.identifier, 1.0);
                     cat_node.outgoing.add(ed);
                     tmp.outgoing.add(ed2);
                 }
@@ -212,13 +187,19 @@ public class ComputeRanks {
                     String article_id = map.get("article_id").toString();
                     articles_for_user.get(user).add(article_id);
                 }
+                //System.out.println(username_to_node);
                 for (Map.Entry<String, Set<String>> e : articles_for_user.entrySet()) {
                     int num_a = e.getValue().size(); 
+                    //System.out.println(e.getKey());
                     Node tmp = username_to_node.get(e.getKey());
+                    //System.out.println("tmp is |" + tmp.toString() + "|");
                     for (String s : e.getValue()) {
                         Node art = article_to_node.get(s);
-                        art.outgoing.add(new Edge(tmp, 1.0));
-                        tmp.outgoing.add(new Edge(art, 0.4 / num_a));
+                        if (art == null) {
+                            continue;
+                        }
+                        art.outgoing.add(new Edge(tmp.identifier, 1.0));
+                        tmp.outgoing.add(new Edge(art.identifier, 0.4 / num_a));
                     }
                 }
 
@@ -243,16 +224,17 @@ public class ComputeRanks {
                     Node tmp = username_to_node.get(e.getKey());
                     for (String s : e.getValue()) {
                         Node friend = username_to_node.get(s);
-                        tmp.outgoing.add(new Edge(friend, 0.3 / num_f));
+                        tmp.outgoing.add(new Edge(friend.identifier, 0.3 / num_f));
                     }
                 }
-
+                idtn = new HashMap<>();
                 for (Node n: username_to_node.values()) {
                     nodes.add(n);
+                    idtn.put(n.identifier, n);
                 }
                 for (Node n: category_to_node.values()) {
                     nodes.add(n);
-                    System.out.println(n);
+                    idtn.put(n.identifier, n);
                     //System.out.println(n);
                 }
                 for (Node n: article_to_node.values()) {
@@ -260,9 +242,7 @@ public class ComputeRanks {
                         e.weight = 1.0 / n.outgoing.size();
                     }
                     nodes.add(n);
-                }
-                for (Node n : nodes) {
-                    //System.out.println(nodes);
+                    idtn.put(n.identifier, n);
                 }
                 //File file = new File(filePath);
                 //Scanner fileReader = new Scanner(file);
@@ -274,7 +254,18 @@ public class ComputeRanks {
                 //    network.add(new Tuple2<Integer, Integer>(Integer.parseInt(edge[1]), Integer.parseInt(edge[0])));
                 //}
                 //return context.parallelizePairs(new ArrayList<Tuple2<Integer, Integer>>(network));
-                return context.parallelize(nodes);
+                utn = username_to_node;
+                atn = article_to_node;
+                ArrayList<Tuple2<String, Node>> pairs = new ArrayList<>();
+                for (Node n: nodes) {
+                    for (Edge e: n.outgoing) {
+                        Node other = idtn.get(e.id);
+                        other.incoming.add(new Edge(n.identifier, e.weight));
+                    }
+                    pairs.add(new Tuple2<String, Node>(n.identifier, n));
+                }
+
+                return context.parallelizePairs(pairs);
             }
             catch (Exception e) {
                     e.printStackTrace(System.out);
@@ -283,10 +274,6 @@ public class ComputeRanks {
             }
 	}
 	
-	private JavaRDD<Integer> getSinks(JavaPairRDD<Integer,Integer> network) {
-            //remove keys which follow others, since they aren't sinks
-            return network.keys().distinct().subtract(network.values().distinct());
-	}
 
 	/**
 	 * Main functionality in the program: read and process the social network
@@ -296,107 +283,66 @@ public class ComputeRanks {
 	 */
 	public void run() throws IOException, InterruptedException {
 		logger.info("Running");
-                JavaRDD<Node> network = getNetwork();
-		// Load the social network
-                
+                JavaPairRDD<String,Node> network = getNetwork();
+                HashMap<String, Node> users = this.utn;
+                Map<String, Node> idtn_tmp = this.idtn;
+                for (int i = 0; i < 15; i++) {
+                    final Map<String, Node> id_to_node = idtn_tmp;
+                    //System.out.println("iter " + i);
+                    network = network.mapValues(node -> {
+                        Node n = new Node(node.identifier);
+                        for (Edge e: node.incoming) {
+                            Node in = id_to_node.get(e.id);
+                            for (Map.Entry<String, Double> en: in.weights.entrySet()) {
+                                if (!n.weights.containsKey(en.getKey())) {
+                                    n.weights.put(en.getKey(), 0.0);
+                                }
+                                n.weights.put(en.getKey(), n.weights.get(en.getKey()) + e.weight * en.getValue());
+                            }
+                        }
+                        n.incoming = node.incoming;
+                        n.outgoing = node.outgoing;
+                        n.normalize();
+                        if (users.containsKey(n.identifier)) {
+                            n.hardcodeUser();
+                        }
+                        return n;
 
-                //followed, follower
-//		JavaPairRDD<Integer, Integer> network = getSocialNetwork(Config.SOCIAL_NET_PATH);
-//                //get followers for each node
-//                JavaPairRDD<Integer, List<Integer>> followers = network.groupByKey().mapValues(iter -> {List<Integer> nodes = new ArrayList<>(); iter.forEach(nodes::add); return nodes;});
-//                //follower, followed
-//                //reversed network to find number of following per node
-//                JavaPairRDD<Integer, Integer> networkReversed = JavaPairRDD.fromJavaRDD(network.rdd().toJavaRDD().map(tuple -> new Tuple2<Integer, Integer>(tuple._2, tuple._1)));
-//
-//
-//                final Map<Integer, Long> followingCount1 = networkReversed.countByKey();
-//                JavaRDD<Integer> all_nodes = network.keys().union(network.values()).distinct();
-//
-//                System.out.println("This graph contains " + all_nodes.count() + " nodes and " + network.count() + " edges");
-//                //add backlinks by getting sink nodes, and adding back edges to all followers for sinks
-//                long backLinksAdded = 0;
-//                JavaPairRDD<Integer, Integer> backLinks = followers.filter(tup -> !(followingCount1.containsKey(tup._1))).flatMapToPair(tup -> {
-//                    List<Tuple2<Integer, Integer>> list = new ArrayList<>();
-//                    for (Integer f: tup._2) {
-//                        list.add(new Tuple2<Integer, Integer>(f, tup._1)); 
-//                    }
-//                    return list.iterator();
-//                });
-//                backLinksAdded = backLinks.count();
-//                System.out.println("Added " + backLinksAdded + " backlinks");
-//                //add backlinks to network
-//                network = network.union(backLinks);
-//
-//                followers = network.groupByKey().mapValues(iter -> {List<Integer> nodes = new ArrayList<>(); iter.forEach(nodes::add); return nodes;});
-//                //now, no more sinks
-//                
-//                Map<Integer, List<Integer>> followerMap = followers.collectAsMap();
-//                
-//                networkReversed = JavaPairRDD.fromJavaRDD(network.rdd().toJavaRDD().map(tuple -> new Tuple2<Integer, Integer>(tuple._2, tuple._1)));
-//                final Map<Integer, Long> followingCount = networkReversed.countByKey();
-//
-//
-//                //begin social rank algorithm
-//                JavaPairRDD<Integer, Double> socialRank = context.parallelizePairs(JavaPairRDD.fromJavaRDD(all_nodes.map(node -> new Tuple2<Integer, Double>(node, 1.0))).collect());
-//                logger.info("started social rank");
-//                Map<Integer, Double> socialRankMap = socialRank.collectAsMap();
-//                double d = 0.15;
-//                int rounds = 1; 
-//                int imax = this.imax;
-//                double dmax = this.dmax;
-//                //calculate new social rank
-//                JavaPairRDD<Integer, Double> newSocialRank = socialRank.mapPartitionsToPair(iter -> {
-//                    Iterable<Tuple2<Integer, Double>> iterable = () -> iter;
-//                    return StreamSupport.stream(iterable.spliterator(), false).map(tup -> {
-//                        double oldRank = tup._2;
-//                        double newRank = d;
-//                        if (followerMap.containsKey(tup._1)) {
-//                            List<Integer> followersList = followerMap.get(tup._1);
-//                            for (Integer f: followersList) {
-//                                newRank += (1.0 - d) * socialRankMap.get(f) / followingCount.get(f);
-//                            }
-//                        }
-//                        
-//                        return new Tuple2<Integer, Double>(tup._1, newRank);
-//                    }).iterator();
-//                });
-//                if (this.debug) {
-//                    newSocialRank.foreach(tup -> System.out.println(tup._1 + " " + tup._2)); 
-//                }
-//                //recalculate new social rank until threshold is done
-//                while ((!socialRank.join(newSocialRank).filter(tup -> Math.abs(tup._2._1 - tup._2._2) >= dmax).isEmpty()) && rounds < imax) 
-//                {
-//                    rounds++;
-//
-//                    logger.info("NEW ROUND");
-//                    socialRank = newSocialRank;
-//                    Map<Integer, Double> socialRankMap2 = socialRank.collectAsMap();
-//                    newSocialRank = socialRank.mapPartitionsToPair(iter -> {
-//                        Iterable<Tuple2<Integer, Double>> iterable = () -> iter;
-//                        return StreamSupport.stream(iterable.spliterator(), false).map(tup -> {
-//                            double oldRank = tup._2;
-//                            double newRank = d;
-//                            if (followerMap.containsKey(tup._1)) {
-//                                List<Integer> followersList = followerMap.get(tup._1);
-//                                for (Integer f: followersList) {
-//                                    newRank += (1.0 - d) * socialRankMap2.get(f) / followingCount.get(f);
-//                                    //System.out.println
-//                                }
-//                            }
-//                            
-//                            return new Tuple2<Integer, Double>(tup._1, newRank);
-//                        }).iterator();
-//                    });
-//                    if (debug) {
-//                        newSocialRank.foreach(tup -> System.out.println(tup._1 + " " + tup._2)); 
-//                    }
-//                }
-//                //output social ranks
-//                for (Tuple2<Double, Integer> tup: (JavaPairRDD.fromJavaRDD(newSocialRank.rdd().toJavaRDD().map(tuple -> new Tuple2<Double, Integer>(tuple._2, tuple._1)))).sortByKey(false).take(10)) {
-//                    System.out.println(tup._2 + " " + tup._1);
-//                }
-//		logger.info("*** Finished social network ranking! ***");
-	}
+                    });
+                    idtn_tmp = network.collectAsMap();
+                }
+                ArrayList<String> articles_list = new ArrayList<>(this.atn.keySet());
+                HashMap<String, List<String>> articles_for_user = new HashMap<>();
+                final Map<String, Node> id_to_node = idtn_tmp;
+                for (String s: this.utn.keySet()) {
+                    ArrayList<String> tmp_list =(ArrayList<String>) articles_list.clone();
+                    tmp_list.sort((a, b) -> {
+                        final Node n = id_to_node.get(a);
+                        final Node n2 = id_to_node.get(b);
+                        return Double.compare(n2.weights.getOrDefault(s, 0.0),n.weights.getOrDefault(s, 0.0));
+                    });
+                    List<String> sliced = tmp_list.subList(0, Math.min(10, tmp_list.size()));
+                    articles_for_user.put(s, sliced);
+                }
+                //System.out.println(articles_for_user);
+                Table feed = dynamoDB.getTable("user_feed_articles");
+                for (Map.Entry<String, List<String>> e : articles_for_user.entrySet()) {
+                    LinkedHashSet<BigDecimal> tmp_set = new LinkedHashSet<>();
+                    for (String s: e.getValue()) {
+                        tmp_set.add(new BigDecimal(Long.parseLong(s)));
+                    }
+                    UpdateItemSpec updateItemSpec = new UpdateItemSpec().withPrimaryKey("username", e.getKey())
+                        .withUpdateExpression("set new_articles = :art, seen_articles = if_not_exists(seen_articles, :art2)")
+                        .withValueMap(
+                            new ValueMap().withList(":art", tmp_set)
+                            .withList(":art2", new ArrayList<BigDecimal>())
+                        );
+                    UpdateItemOutcome outcome =  feed.updateItem(updateItemSpec);  
+                }
+                //network.values().foreach(node -> {
+                //    System.out.println(node);
+                //});
+        }
 
 
 	/**
@@ -413,13 +359,6 @@ public class ComputeRanks {
 
 	public static void main(String[] args) {
 		final ComputeRanks cr = new ComputeRanks();
-                if (args.length >= 1) {
-                    cr.dmax = Double.parseDouble(args[0]);
-                }
-                if (args.length >= 2) {
-                    cr.imax = Integer.parseInt(args[1]);
-                }
-                cr.debug = args.length >= 3;
 
 		try {
 			cr.initialize();
@@ -435,4 +374,57 @@ public class ComputeRanks {
 		}
 	}
 
+}
+
+class Node implements Serializable{
+    public String identifier;
+    public ArrayList<Edge> outgoing;
+    public ArrayList<Edge> incoming;
+    public HashMap<String, Double> weights;
+    //public HashMap<String, Double> newWeights;
+    public Node(String id) {
+        weights = new HashMap<>();
+        //newWeights = new HashMap<>();
+        outgoing = new ArrayList<>();
+        incoming = new ArrayList<>();
+        identifier = id;
+    }
+    private void readObject(ObjectInputStream aInputStream) throws ClassNotFoundException, IOException {
+        aInputStream.defaultReadObject();
+    }
+    private void writeObject(ObjectOutputStream aOutputStream) throws IOException {
+        aOutputStream.defaultWriteObject();
+    }
+    public String toString() {
+        return "id: " + identifier + " edges: " + incoming.toString() + "weights: " + weights.toString();
+    }
+    public void normalize() {
+        double sum = 0;
+        for (Double d : weights.values()) {
+            sum += d;
+        }
+        for (Map.Entry<String, Double> e : weights.entrySet()) {
+            weights.put(e.getKey(), e.getValue() / sum);
+        }
+    }
+    public void hardcodeUser() {
+        weights.put(identifier, 1.0);
+    }
+}
+class Edge implements Serializable{
+    public String id;
+    public double weight;
+    public Edge(String ident, double w) {
+        id = ident;
+        weight = w;
+    }
+    private void readObject(ObjectInputStream aInputStream) throws ClassNotFoundException, IOException {
+        aInputStream.defaultReadObject();
+    }
+    private void writeObject(ObjectOutputStream aOutputStream) throws IOException {
+        aOutputStream.defaultWriteObject();
+    }
+    public String toString() {
+        return "(" + id + ", " + weight + ")";
+    }
 }

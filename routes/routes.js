@@ -1,5 +1,6 @@
 const { addPost, getUserInfo } = require('../models/database.js');
 var db = require('../models/database.js');
+const stemmer = require('stemmer');
 
 // routes here
  var getMain = function(req, res) {
@@ -421,7 +422,21 @@ var getHome = function(req, res) {
                           for (post of data) {
                             post.time_ago = time_ago(parseInt(post.timestamp.N));
                           }
-                          res.render('home.ejs', {posts: data, friends: dataf2, currUser: req.session.username});
+                         
+                        db.getArticlesForUser(req.session.username, function(errA, dataA) {
+                            if (errA) {
+                                res.render('home.ejs', {posts: data, friends: dataf2, currUser: req.session.username});
+                            }
+                            else {
+
+                                //console.log(dataA);
+                                dataA[0]["type"] = {"S": "article"}
+                                dataA[0]["creator"] = {"S": "N/A"}
+                                dataA[0]["content"] = {"S": "N/A"}
+                                dataA[0]["post_id"] = {"S": "N/A"}
+                                res.render('home.ejs', {posts: dataA.concat(data), friends: dataf2, currUser: req.session.username});
+                            }
+                        });
                         }
                       });
                     }
@@ -527,7 +542,20 @@ var updatePosts = function(req, res) {
           for (post of data) {
             post.time_ago = time_ago(parseInt(post.timestamp.N));
           }
-          res.send(JSON.stringify(data));
+          db.getArticlesForUser(req.session.username, function(err2, data2) {
+            if (err2) {
+                console.log(err2);
+                res.send(JSON.stringify(data));
+            }
+            else {
+                //console.log(data);
+                data2[0]["type"] = {"S": "post"}
+                //console.log(JSON.stringify(data2.concat(data)));
+                res.send(JSON.stringify(data2.concat(data)));
+            }
+          })
+          //console.log(JSON.stringify(data));
+          //res.send(JSON.stringify(data));
         }
       });
     }
@@ -608,6 +636,7 @@ function time_ago(time) {
     default:
       time = +new Date();
   }
+  // For conversion
   var time_formats = [
     [60, 'seconds', 1], // 60
     [120, '1 minute ago', '1 minute from now'], // 60*2
@@ -639,6 +668,7 @@ function time_ago(time) {
     list_choice = 2;
   }
 
+  // Format by dividing by highest available
   var i = 0,
     format;
   while (format = time_formats[i++])
@@ -667,7 +697,7 @@ var addChatMessage = function(req, res) {
     })
 };
 
-var getSearchResults = function(req, res) {
+var getSearchResults = async function(req, res) {
     var q = req.query.query;
     console.log(q);
 
@@ -679,7 +709,18 @@ var getSearchResults = function(req, res) {
               if (err) {
                 console.log(err);
               } else {
-                res.render('search.ejs', {friends: data, currFriends: data2, currUser: req.session.username});
+                let kws = q.split(" ").map(x => stemmer(x.toLowerCase()));
+                db.searchArticles(kws, function(err, dataArticles) {
+                    if (err) {
+                        console.log(err);
+                        res.render('search.ejs', {friends: data, currFriends: data2, currUser: req.session.username});
+                    }
+                    else {
+
+                        res.render('search.ejs', {friends: data, currFriends: data2, currUser: req.session.username, articles: dataArticles});
+                    }
+
+                });
               }
             })
         }
@@ -818,6 +859,17 @@ var addFriend = function(req, res) {
   }
 }
 
+var likeArticle = function(req, res) {
+
+  if (req.session.username == null) {
+    res.send(JSON.stringify([]));
+  }
+  else {
+    db.likeArticle(req.session.username, req.query.id); 
+  }
+
+}
+
 var routes = {
     get_main: getMain,
     post_start_chat: startChat,
@@ -842,7 +894,8 @@ var routes = {
     get_comments: getComments,
     add_comment: addComment,
     write_on_wall: writeOnWall,
-    add_friend: addFriend
+    add_friend: addFriend,
+    like_article: likeArticle
   };
   
   module.exports = routes;

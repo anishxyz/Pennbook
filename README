@@ -30,7 +30,7 @@ Declaration: All of the code submitted was written by us.
 
 Instructions: update AWS credentials to those of G26, install and use node version 18.2.1, run 'npm install', run 'node app.js'
 Libraries (you may need to install these separately):
-crypto.js (https://www.npmjs.com/package/crypto-js) - for hasing passwords
+crypto-js (https://www.npmjs.com/package/crypto-js) - for hasing passwords
 uuid (https://www.npmjs.com/package/uuid) - for generating random id's
 vis-network (https://www.npmjs.com/package/vis-network) - for visualizer
 stemmer (https://www.npmjs.com/package/stemmer) - for news search

@@ -636,6 +636,7 @@ function time_ago(time) {
     default:
       time = +new Date();
   }
+  // For conversion
   var time_formats = [
     [60, 'seconds', 1], // 60
     [120, '1 minute ago', '1 minute from now'], // 60*2
@@ -667,6 +668,7 @@ function time_ago(time) {
     list_choice = 2;
   }
 
+  // Format by dividing by highest available
   var i = 0,
     format;
   while (format = time_formats[i++])

@@ -360,6 +360,7 @@ var get_users_status = function(users, callback) {
     });
 }
 
+// Gets affiliations for a list of users
 var get_users_affiliation = function(users, callback) {
   if (users == null || users.length == 0) {
     callback(null, []);
@@ -396,6 +397,7 @@ var get_users_affiliation = function(users, callback) {
     });
 }
 
+// Gets post_id's for a given user
 // Error 1 means issue while querying
 var get_posts_for_user = function(username, callback) {
   var params = {
@@ -545,6 +547,7 @@ var login_check = function(username, password, callback) {
     });
 }
 
+// Adds a post_id under a user
 var add_post_to_user = function(username, post_id, callback) {
   // First get original posts set
   params = {
@@ -782,6 +785,7 @@ var add_posts = function(posts, creator, callback) {
   });
 }
 
+// Adds a comment
 // Error 1 means issue while writing to database
 var add_comment = function(creator, post_id, timestamp, content, callback) {
   timestamp = timestamp.toString();
@@ -814,6 +818,7 @@ var add_comment = function(creator, post_id, timestamp, content, callback) {
   });
 }
 
+// Gets comments for a specific post_id
 // Error 1 means issue while querying database
 var get_comments_for_post = function(post_id, callback) {
   var params = {
@@ -1011,6 +1016,7 @@ var get_chat_messages = function(chat_id, callback) {
   });
 }
 
+// Provides search results for a substring
 var search_for_user = function(sub, callback) {
   console.log("Here 1");
   var params = {
@@ -1059,6 +1065,7 @@ var search_for_user = function(sub, callback) {
   });
 };
 
+// Gets articles for a given user
 var get_articles_for_user = function(username, callback) {
 
   console.log("username: " + username);
@@ -1120,6 +1127,8 @@ var get_articles_for_user = function(username, callback) {
   });
 
 }
+
+// Likes an article for a user
 var like_article = function(username, article_id) {
     
   console.log(username + " liked " + article_id);

@@ -201,7 +201,9 @@
         updateComments();
     });
 
+    // For search suggestions ajax
     function autocomplete(inp) {
+        // currentFocus is the current search result highlighted (for arrow key navigation)
         var currentFocus;
         // update autocomplete options
         inp.addEventListener("input", function (e) {
@@ -215,6 +217,7 @@
             a.setAttribute("id", this.id + "autocomplete-list");
             a.setAttribute("class", "autocomplete-items");
             this.parentNode.appendChild(a);
+            // Update search suggestions
             $(document).ready(function () {
                 $.getJSON("/search2?query=" + val, function (results) {
                     for (result of results) {

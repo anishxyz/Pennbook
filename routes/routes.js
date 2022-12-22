@@ -25,28 +25,7 @@ var getEnterChat = function(req, res) {
  var startChat = async function(req, res) {
     var validAdditons = true;
 
-    // if (req.body.newUsernameInput != null) {
-    //   var friendsList = await db.getFriends(req.session.username, function(err, data) {
-    //     if (err) {
-    //       console.log(err);
-    //     }
-    //   })
-
-    //   var splitAdditions = req.body.newUsernameInput.split(",");
-
-    //   if (friendsList != null) {
-    //     for (let i = 0; i < splitAdditions.length; i++) {
-    //       if (!friendsList.includes(splitAdditions[i])) {
-    //         console.log(splitAdditions[i] + " NOT IN FRIENDS LIST")
-    //         validAdditons = false;
-    //       }
-    //     } 
-    //  } else {
-    //    // no friends? can't add anyone
-    //   validAdditons = false;
-    //  }
-    // }
-
+    // first get all friends to pass in
     db.getFriends(req.session.username, function(err, friendsList) {
       console.log("FRIENDS HERE", friendsList);
       var otherUsers = req.body.usernameInput + "," + req.body.newUsernameInput;
@@ -67,12 +46,12 @@ var getEnterChat = function(req, res) {
     var prevMessages = [];
     var chat_id = 0;
 
+    // check if chat exists for this group of users. If so, use those messages. If not, create a new chat. 
      db.getChatsForUsers(sorted_list_of_users, function(err, data) {    
         if (data == null) {
           // create a new chat
           db.createChat(sorted_list_of_users, function(err, data) {  
             if (err) {
-              console.log("CHAT CREATION FAILED");
             } else {
               chat_id = data;
               res.render('chat.ejs', {message: null, user: req.session.username, otherUsers: sorted_list_of_users.toString(), chat_id: chat_id, prevMessages: prevMessages.toString(), friends: friendsList.toString()});
@@ -80,30 +59,16 @@ var getEnterChat = function(req, res) {
           });
         } else {
           chat_id = data;
-          console.log("FETCHING THE CHAT WITH ID", chat_id);
           db.getChatMessages(chat_id, function(err, data) {
+            // append the name of the creator to each message, to be extracted later
             for (entry of data) {
               prevMessages.push(entry.creator.S + ": " + entry.message.S);
             }
-            console.log("PREV HERE ", prevMessages);
-            
             res.render('chat.ejs', {message: null, user: req.session.username, otherUsers: sorted_list_of_users.toString(), chat_id: chat_id, prevMessages: prevMessages.toString(), friends: friendsList.toString()});
           });
         }
     });
-    // get prev messages from db
     })
-
-    // var friendsList = await db.getFriends(req.session.username, function(err, data) {
-    //   if (err) {
-    //     console.log(err);
-    //   }
-    // })
-
-   
-
-    
-
  };
 
  var getCreatePost = function(req, res) {
@@ -168,11 +133,14 @@ var getEnterChat = function(req, res) {
  };
 
  var getEditAccPage = function(req, res) {
+
+  // if they tried to enter this page directly before logging in
   if (req.session.username == null) {
     res.render('signup.ejs', {message: null});
     return;
   }
 
+  // get the existing info and autopopulate
   db.getUserInfo(req.session.username, function(err, data) {  
    
     var message = null;
@@ -229,6 +197,7 @@ var saveAccChanges= async function(req, res) {
   var birthday = req.body.birthdayInput;
 
   posts = [];
+  // fetch new interests.
   var interests = [];
    for (const key in req.body) {
     if (key.charAt(0) == '_') {
@@ -259,7 +228,7 @@ var saveAccChanges= async function(req, res) {
 
     
 
-   // if all good, add 
+   // if all good, add each of the changes one after another
    db.updateUserInfo(username, "firstName", firstName, function(err, data) {   
       if ((err == null)) {
         db.updateUserInfo(username, "lastName", lastName, function(err, data) {   
@@ -349,7 +318,13 @@ var saveAccChanges= async function(req, res) {
   }
   }
 
-    var getUserPage = function(req, res) {
+/**
+ * Makes calls to generate the user page (my wall or friends)
+ *
+ * @param req username is in url (query friend)
+ * @param res
+ */
+var getUserPage = function(req, res) {
         if(req.session.username == null) {
             res.redirect('signup.ejs');
             return;
@@ -395,6 +370,13 @@ var saveAccChanges= async function(req, res) {
         });
     }
 
+
+/**
+ * makes all necesary db calls to generate the home page
+ *
+ * @param req
+ * @param res
+ */
 var getHome = function(req, res) {
      if(req.session.username == null) {
         res.redirect('signup.ejs');
@@ -554,8 +536,6 @@ var updatePosts = function(req, res) {
                 res.send(JSON.stringify(data2.concat(data)));
             }
           })
-          //console.log(JSON.stringify(data));
-          //res.send(JSON.stringify(data));
         }
       });
     }
@@ -697,26 +677,39 @@ var addChatMessage = function(req, res) {
     })
 };
 
+/**
+ * Gets search results for search page
+ *
+ * Returns list of users and articles relavant to search query
+ *
+ * @param req
+ * @param res
+ * @returns {Promise<void>}
+ */
 var getSearchResults = async function(req, res) {
     var q = req.query.query;
     console.log(q);
 
+    // first search users matching
     db.searchUser(q, function(err, data) {
         if (err) {
             console.log(err);
         } else {
+
+            // mark users already friended
             db.getFriends(req.session.username, function(err, data2) {
               if (err) {
                 console.log(err);
               } else {
                 let kws = q.split(" ").map(x => stemmer(x.toLowerCase()));
+
+                // add articles to results
                 db.searchArticles(kws, function(err, dataArticles) {
                     if (err) {
                         console.log(err);
                         res.render('search.ejs', {friends: data, currFriends: data2, currUser: req.session.username});
                     }
                     else {
-
                         res.render('search.ejs', {friends: data, currFriends: data2, currUser: req.session.username, articles: dataArticles});
                     }
 
@@ -727,10 +720,20 @@ var getSearchResults = async function(req, res) {
     });
 }
 
+/**
+ *
+ * Used to update search results in real-time viewer
+ *
+ * Endpoint of ajax call
+ *
+ * @param req
+ * @param res
+ */
 var updateSearchResults = function(req, res) {
     var q = req.query.query;
     console.log(q);
 
+    // get relevant users and return them back
     db.searchUser(q, function(err, data) {
         if (err) {
             console.log(err);
@@ -799,6 +802,14 @@ var updateVisualizer = function(req, res) {
   })
 }
 
+/**
+ * Adds comment to db
+ *
+ * Endpoint of ajax call to add comment
+ *
+ * @param req contains id in body
+ * @param res
+ */
 var addComment = function(req, res) {
     if (req.session.username == null) {
         console.log("here");
@@ -807,6 +818,8 @@ var addComment = function(req, res) {
         console.log("adding comment to db");
         console.log(req.body.cont);
         console.log(req.body.id);
+
+        // db call to add comment, uses curr timestamp
         db.addComment(req.session.username, req.body.id, Date.now(), req.body.cont, function(err, data) {
             if (err) {
                 console.log("here2");
@@ -817,12 +830,20 @@ var addComment = function(req, res) {
     }
 }
 
+/**
+ * Returns comments from given post id
+ *
+ * @param req contains id in url (query)
+ * @param res
+ */
 var getComments = function(req, res) {
     if (req.session.username == null) {
         console.log("here");
         res.redirect('/');
     } else {
         console.log("post id: " + req.query.id);
+
+        // query db for comments from postid
         db.getCommentsForPost(req.query.id, function(err, data) {
             if (err) {
                 console.log("here2");

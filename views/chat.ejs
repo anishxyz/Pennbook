@@ -214,13 +214,12 @@ body {
         <form method="post" action="/chat" class="">
           <input class="form-control me-2" type="hidden" id="usernameInput" name="usernameInput" value= "">
           <input type="submit" name="submit" value="Enter Chat" class="btn btn-outline-success">
-          <button class="btn btn-outline-danger" type="submit" id="closeButton">Close</button>
         </form>
       </div>
     
     </div>
    
-
+<!-- html outline and image from codepen -->
 
     <section class="msger" >
       <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -306,10 +305,6 @@ body {
 
       </main>
     
-      <!-- <form class="msger-inputarea" id="form" action="">
-        <input type="input" id="input" class="msger-input" placeholder="Enter your message...">
-        <button type="submit" class="msger-send-btn">Send</button>
-      </form> -->
 
       <form id="form" action="" class="msger-inputarea">
         <input id="input" autocomplete="off" class="msger-input" placeholder="Enter your message..."/><button class="msger-send-btn">Send</button>
@@ -330,17 +325,6 @@ body {
 
 
     
-
-<!-- 
-    
-<h2 id="chatTitle"></h2>
-
-    <ul id="messages"></ul>
-
-    <form id="form" action="">
-      <input id="input" autocomplete="on" type="text" placeholder="Enter your message..." />
-    </form> -->
-
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
@@ -369,7 +353,7 @@ window.onload = function() {
 
 
 
-                
+  // get the messages passed in
   allMessages = allMessages.split(",");
 
 
@@ -377,14 +361,14 @@ window.onload = function() {
 
   const otherUsersString = otherUsers.toString();
   localOtherUsers = otherUsersString;
-  console.log("HERE " + otherUsers[0]);
 
+  // invite everyone one by one
   for (let k = 0; k < otherUsers.length; k++) {
     let recipient = otherUsers[k];
-    console.log("EMITING INVITE FROM " + otherUsersString + " TO " + recipient);
     socket.emit('chat invite', ({recipient, otherUsersString}));
   }
 
+  // get modal objects
   modal = document.getElementById("myModal"); 
             modalHiddenFormInput = document.getElementById("usernameInput"); 
             closeButton = document.getElementById("closeButton");
@@ -394,13 +378,15 @@ window.onload = function() {
 
 }
 
+
+// if the modal is in front and user clicks outside, leave modal
 window.onclick = function (event) {
         if (event.target == modal) {
             modal.style.display = "none";
         }
     }
 
-
+// show an alert if user tries to add someone not their friend
 function checkFriend(){
   var newNames = document.getElementById("newUsernameInput").value.split(","); 
   for (let i = 0; i < newNames.length; i++) {
@@ -414,30 +400,22 @@ function checkFriend(){
   var socket = io();
 
 
+  // if this user gets an invite
   socket.on('chat invite', function({recipient, otherUsersString}) {
-
-
-      console.log("GOT AN INVITE TO CHAT AS USER " +  currUser + " FROM " + otherUsersString + " TO " + recipient);
-
       if (currUser == recipient && otherUsersString != localOtherUsers) {
-    
+        // show the modal and show who invited
           modal.style.display = "block";
           document.getElementById("usernameInput").value = otherUsersString + "," + recipient;
+
           var otherPplString = "";
-
-                for (let i = 0; i < otherUsersString.split(",").length; i++) { 
-                    var user = otherUsersString.split(",")[i];
-                    if (currUser != user) {
-                        otherPplString += ", " + user;
-                    }
+            for (let i = 0; i < otherUsersString.split(",").length; i++) { 
+                var user = otherUsersString.split(",")[i];
+                if (currUser != user) {
+                    otherPplString += ", " + user;
                 }
-                otherPplString = otherPplString.substring(1);
-                document.getElementById("chatInviteP").textContent = "You got an invite to join a chat with " + otherPplString + "!"
-
-
-          // alert("Got an invite to chat from " + sender + ".")
-
-
+            }
+            otherPplString = otherPplString.substring(1);
+            document.getElementById("chatInviteP").textContent = "You got an invite to join a chat with " + otherPplString + "!"
       }
   });
 
@@ -450,6 +428,7 @@ function checkFriend(){
       var msg = input.value;
       var sender = currUser;
       var recipients = otherUsers;
+      // when new message added by current user, push to db and socket
       socket.emit('chat message', ({msg, sender, recipients}));
 
       // add to db
@@ -470,6 +449,7 @@ function checkFriend(){
 
       input.value = '';
 
+      // also add to the html manually
       $("#msglist").append('<div class="msg right-msg"> <div class="msg-bubble"> <div class="msg-info"> <div class="msg-info-name">' + currUser + 
         '</div>  <div class="msg-text">' + msg + ' </div> </div> </div>');
 
@@ -479,22 +459,16 @@ function checkFriend(){
   });
 
   socket.on('chat message', function({msg, sender, recipients}) {
-    console.log("CURR USER ", currUser);
-    console.log("RECIPIENTS ", recipients);
+    // if user gets a chat message, just need to update the html to show it on the left side
     if (recipients.includes(currUser) && otherUsers.includes(sender) && sender != currUser) {
-     
- 
-
       $("#msglist").append('<div class="msg left-msg"> <div class="msg-bubble"> <div class="msg-info"> <div class="msg-info-name">' + sender + 
         '</div>  <div class="msg-text">' + msg + ' </div> </div> </div>');
-
+        // scroll down to the new message
         chatView.scrollTop = chatView.scrollHeight;
 
     }
   });
 
 </script>
-
-
   </body>
 </html>

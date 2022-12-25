@@ -1,12 +1,7 @@
-G26 README
+#Pennbook
 
-Team Members:
-Amay Tripathi (amayt)
-Kasyap Chakravadhanula (kasyap)
-Anish Agrawal (anish)
-Aneesh Boreda (aboreda)
 
-Features (all required features are implemented):
+Features:
 User login and registration with error handling (username duplicates, etc.)
 Home page with all of your friends, friend's posts, and an article suggestion
 Each post has an offcanvas view, where you and view post comments
@@ -41,4 +36,10 @@ Instructions for articles:
 The article loader can be run by doing "mvn exec:java@load" while in the articles folder. Currently, the loader for the inverted article keyword table must be run manually, by switching the line that runs LoadArticles.load to LoadArticles.loadInverted.
 In addition, the code for generating the adsorption graph and uploading articles by weight for each user is run by doing "mvn exec:java@local" while in the articles_src folder. This was run on an hourly schedule using a cron job with the timing "0 * * * *" for running the previous command.
 
-Instructions for DynamoDB: Need the tables indictaed in tables.png
+Instructions for DynamoDB: Need the tables indicated in tables.png
+
+Built with:
+Anish Agrawal
+Amay Tripathi 
+Kasyap Chakravadhanula 
+Aneesh Boreda 

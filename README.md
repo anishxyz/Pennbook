@@ -1,5 +1,6 @@
 # Pennbook
 
+<img width="2056" alt="Screenshot 2022-12-22 at 5 10 31 PM" src="https://user-images.githubusercontent.com/25111855/209485482-29c9bef4-244d-4bb2-9aae-9b24e56102da.png">
 
 ## Features
 User login and registration with error handling (username duplicates, etc.)
@@ -37,4 +38,11 @@ The article loader can be run by doing "mvn exec:java@load" while in the article
 #### Instructions for DynamoDB: 
 Need the tables indicated in tables.png
 
-#### Built with: Anish Agrawal, Amay Tripathi, Kasyap Chakravadhanula, Aneesh Boreda   
+## Screenshots
+<img width="2056" alt="Screenshot 2022-12-22 at 5 11 16 PM" src="https://user-images.githubusercontent.com/25111855/209485558-f129e536-f5ff-4d5b-b2ef-712489ec4aad.png">
+<img width="2055" alt="Screenshot 2022-12-22 at 5 11 39 PM" src="https://user-images.githubusercontent.com/25111855/209485560-2ceee415-35e6-4016-939c-ae604044651c.png">
+<img width="688" alt="Screenshot 2022-12-25 at 4 19 13 PM" src="https://user-images.githubusercontent.com/25111855/209485613-e176061c-5be8-4559-b842-a1d87f8837ad.png">
+<img width="2056" alt="Screenshot 2022-12-22 at 5 06 25 PM" src="https://user-images.githubusercontent.com/25111855/209485557-fe2c3bad-65d8-4879-9d10-176f194d0ded.png">
+<img width="2053" alt="Screenshot 2022-12-22 at 5 11 25 PM" src="https://user-images.githubusercontent.com/25111855/209485556-fbbee852-0956-4fc7-836e-651df798dff4.png">
+
+#### Built with <3 by Anish Agrawal, Amay Tripathi, Kasyap Chakravadhanula, Aneesh Boreda   

@@ -1,5 +1,11 @@
 # Pennbook
 
+![](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)
+![](https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white)
+![](https://img.shields.io/badge/Amazon%20DynamoDB-4053D6?style=for-the-badge&logo=Amazon%20DynamoDB&logoColor=white)
+![](https://img.shields.io/badge/Amazon_AWS-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)
+![](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
+
 <img width="2056" alt="Screenshot 2022-12-22 at 5 10 31 PM" src="https://user-images.githubusercontent.com/25111855/209485482-29c9bef4-244d-4bb2-9aae-9b24e56102da.png">
 
 ## Features
